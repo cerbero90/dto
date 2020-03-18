@@ -1,0 +1,52 @@
+{
+    "name": "cerbero/dto",
+    "type": "library",
+    "description": "Data Transfer Object (DTO)",
+    "keywords": [
+        "dto",
+        "data transfer object"
+    ],
+    "homepage": "https://github.com/cerbero/dto",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Andrea Marco Sartori",
+            "email": "andrea.marco.sartori@gmail.com",
+            "homepage": "https://github.com/cerbero90",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "~7.2"
+    },
+    "require-dev": {
+        "phpunit/phpunit": ">=8.0",
+        "squizlabs/php_codesniffer": "^3.0"
+    },
+    "autoload": {
+        "files": [
+            "src/DtoFlags.php"
+        ],
+        "psr-4": {
+            "Cerbero\\Dto\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Cerbero\\Dto\\": "tests"
+        }
+    },
+    "scripts": {
+        "test": "phpunit",
+        "check-style": "phpcs src tests",
+        "fix-style": "phpcbf src tests"
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "1.0-dev"
+        }
+    },
+    "config": {
+        "sort-packages": true
+    }
+}
