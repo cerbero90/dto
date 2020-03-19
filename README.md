@@ -1,5 +1,6 @@
 # DTO
 
+[![Required PHP Version][ico-php]][link-packagist]
 [![Latest Version on Packagist][ico-version]][link-packagist]
 [![Software License][ico-license]](LICENSE.md)
 [![Build Status][ico-travis]][link-travis]
@@ -53,17 +54,18 @@ If you discover any security related issues, please email andrea.marco.sartori@g
 
 The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
 
+[ico-php]: https://img.shields.io/packagist/php-v/cerbero/dto?color=%238892BF&style=flat-square
 [ico-version]: https://img.shields.io/packagist/v/cerbero/dto.svg?style=flat-square
 [ico-license]: https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square
-[ico-travis]: https://img.shields.io/travis/cerbero/dto/master.svg?style=flat-square
-[ico-scrutinizer]: https://img.shields.io/scrutinizer/coverage/g/cerbero/dto.svg?style=flat-square
-[ico-code-quality]: https://img.shields.io/scrutinizer/g/cerbero/dto.svg?style=flat-square
-[ico-downloads]: https://img.shields.io/packagist/dt/cerbero/dto.svg?style=flat-square
+[ico-travis]: https://img.shields.io/travis/cerbero90/dto/master.svg?style=flat-square
+[ico-scrutinizer]: https://img.shields.io/scrutinizer/coverage/g/cerbero90/dto.svg?style=flat-square
+[ico-code-quality]: https://img.shields.io/scrutinizer/g/cerbero90/dto.svg?style=flat-square
+[ico-downloads]: https://img.shields.io/packagist/dt/cerbero90/dto.svg?style=flat-square
 
-[link-packagist]: https://packagist.org/packages/cerbero/dto
-[link-travis]: https://travis-ci.org/cerbero/dto
-[link-scrutinizer]: https://scrutinizer-ci.com/g/cerbero/dto/code-structure
-[link-code-quality]: https://scrutinizer-ci.com/g/cerbero/dto
+[link-packagist]: https://packagist.org/packages/cerbero90/dto
+[link-travis]: https://travis-ci.org/cerbero90/dto
+[link-scrutinizer]: https://scrutinizer-ci.com/g/cerbero90/dto/code-structure
+[link-code-quality]: https://scrutinizer-ci.com/g/cerbero90/dto
 [link-downloads]: https://packagist.org/packages/cerbero/dto
 [link-author]: https://github.com/cerbero90
 [link-lachlan]: https://github.com/lachlankrautz
