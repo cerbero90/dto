@@ -38,8 +38,8 @@
     },
     "scripts": {
         "test": "phpunit",
-        "check-style": "phpcs src tests",
-        "fix-style": "phpcbf src tests"
+        "check-style": "phpcs --standard=psr12 src",
+        "fix-style": "phpcbf --standard=psr12 src"
     },
     "extra": {
         "branch-alias": {
