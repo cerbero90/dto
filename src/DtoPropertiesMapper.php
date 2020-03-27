@@ -118,6 +118,7 @@ class DtoPropertiesMapper
      * @param array $data
      * @param int $flags
      * @return array
+     * @throws InvalidDocCommentException
      * @throws MissingValueException
      * @throws UnexpectedValueException
      */
@@ -237,6 +238,6 @@ class DtoPropertiesMapper
             }
 
             return $types->addType(new DtoPropertyType($name, $isCollection));
-        }, new DtoPropertyTypes);
+        }, new DtoPropertyTypes());
     }
 }
