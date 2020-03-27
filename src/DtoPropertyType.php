@@ -65,6 +65,16 @@ class DtoPropertyType
     }
 
     /**
+     * Retrieve the declared name
+     *
+     * @return string
+     */
+    public function declaredName(): string
+    {
+        return $this->isCollection() ? $this->name() . '[]' : $this->name();
+    }
+
+    /**
      * Determine whether the current property type matches the given value
      *
      * @param mixed $value

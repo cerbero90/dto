@@ -2,8 +2,12 @@
 
 namespace Cerbero\Dto;
 
+use Cerbero\Dto\Manipulators\ArrayConverter;
+use Cerbero\Dto\Manipulators\DateTimeConverter;
+use DateTime;
 use PHPUnit\Framework\TestCase;
 use ReflectionProperty;
+use stdClass;
 
 /**
  * Tests for ArrayConverter.
@@ -42,15 +46,13 @@ class ArrayConverterTest extends TestCase
     {
         $converter = ArrayConverter::instance();
 
-        $this->assertNull($converter->getConversion(new SampleClass));
+        $this->assertEmpty($converter->getConversions());
 
-        $conversion = function () {
-            return ['test' => true];
-        };
+        $conversions = ['foo' => 'bar'];
 
-        $converter->conversion(SampleClass::class, $conversion);
+        $converter->setConversions($conversions);
 
-        $this->assertSame($conversion, $converter->getConversion(new SampleClass));
+        $this->assertSame($conversions, $converter->getConversions());
     }
 
     /**
@@ -58,40 +60,58 @@ class ArrayConverterTest extends TestCase
      */
     public function calls_registered_conversions()
     {
-        $converter = ArrayConverter::instance();
-
-        $converter->conversion(SampleClass::class, function (SampleClass $class) {
-            return get_class($class);
-        });
-
-        $this->assertSame(SampleClass::class, $converter->convert(new SampleClass));
-    }
-
-    /**
-     * @test
-     */
-    public function recursively_converts_iterables()
-    {
         $data = [
             'key1' => 'value1',
             'key2' => [
-                'key3' => new SampleClass,
-            ]
+                'key3' => new DateTime('2020-01-01'),
+            ],
         ];
 
         $expected = [
             'key1' => 'value1',
             'key2' => [
-                'key3' => SampleClass::class,
-            ]
+                'key3' => '2020-01-01',
+            ],
         ];
 
-        $converter = ArrayConverter::instance();
-
-        $converter->conversion(SampleClass::class, function (SampleClass $class) {
-            return get_class($class);
-        });
+        $converter = ArrayConverter::instance()->setConversions([
+            'DateTime' => DateTimeConverter::class,
+        ]);
 
         $this->assertSame($expected, $converter->convert($data));
+    }
+
+    /**
+     * @test
+     */
+    public function gets_converter_by_instance()
+    {
+        $converter = ArrayConverter::instance()->setConversions([
+            'DateTime' => DateTimeConverter::class,
+        ]);
+
+        $dateTimeConverter = $converter->getConverterByInstance(new DateTime());
+
+        $this->assertInstanceOf(DateTimeConverter::class, $dateTimeConverter);
+        $this->assertSame($dateTimeConverter, $converter->getConverterByInstance(new DateTime()));
+
+        $this->assertNull($converter->getConverterByInstance(new stdClass()));
+    }
+
+    /**
+     * @test
+     */
+    public function gets_converter_by_class()
+    {
+        $converter = ArrayConverter::instance()->setConversions([
+            'DateTime' => DateTimeConverter::class,
+        ]);
+
+        $dateTimeConverter = $converter->getConverterByClass(DateTime::class);
+
+        $this->assertInstanceOf(DateTimeConverter::class, $dateTimeConverter);
+        $this->assertSame($dateTimeConverter, $converter->getConverterByClass(DateTime::class));
+
+        $this->assertNull($converter->getConverterByClass(stdClass::class));
     }
 }
