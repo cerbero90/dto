@@ -2,11 +2,14 @@
 
 namespace Cerbero\Dto;
 
+use Cerbero\Dto\Manipulators\ArrayConverter;
 use Cerbero\Dto\Dtos\NoPropertiesDto;
 use Cerbero\Dto\Dtos\PartialDto;
 use Cerbero\Dto\Exceptions\ImmutableDtoException;
 use Cerbero\Dto\Exceptions\UnknownDtoPropertyException;
 use Cerbero\Dto\Exceptions\UnsetDtoPropertyException;
+use Cerbero\Dto\Manipulators\Listener;
+use Cerbero\Dto\Manipulators\PartialDtoListener;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -169,6 +172,22 @@ class DtoTest extends TestCase
     /**
      * @test
      */
+    public function retrieves_values_via_listener()
+    {
+        Listener::instance()->listen([
+            PartialDto::class => PartialDtoListener::class,
+        ]);
+
+        $dto = PartialDto::make(['nullable' => 0]);
+
+        $this->assertSame(321, $dto->get('nullable'));
+
+        Listener::instance()->listen([]);
+    }
+
+    /**
+     * @test
+     */
     public function created_a_new_instance_with_modified_values_if_immutable()
     {
         $dto1 = PartialDto::make(['name' => 'foo']);
@@ -195,6 +214,22 @@ class DtoTest extends TestCase
     /**
      * @test
      */
+    public function sets_values_via_listener()
+    {
+        Listener::instance()->listen([
+            PartialDto::class => PartialDtoListener::class,
+        ]);
+
+        $dto = PartialDto::make(['nullable' => 100])->set('nullable', 0);
+
+        $this->assertSame(123, $dto->getProperty('nullable')->value());
+
+        Listener::instance()->listen([]);
+    }
+
+    /**
+     * @test
+     */
     public function does_not_fail_setting_missing_properties_if_flagged()
     {
         $dto1 = PartialDto::make(['name' => 'foo'], IGNORE_UNKNOWN_PROPERTIES);
@@ -212,6 +247,84 @@ class DtoTest extends TestCase
         $this->expectExceptionMessage("Unknown property 'missing' in the DTO [Cerbero\Dto\Dtos\PartialDto]");
 
         PartialDto::make(['name' => 'foo'])->set('missing', 123);
+    }
+
+    /**
+     * @test
+     */
+    public function unset_its_own_property_when_mutable()
+    {
+        $dto = PartialDto::make(['name' => 'foo'], MUTABLE);
+        $dto->unset('name');
+
+        $this->assertFalse($dto->hasProperty('name'));
+    }
+
+    /**
+     * @test
+     */
+    public function unset_property_in_a_new_instance_when_immutable()
+    {
+        $dto1 = PartialDto::make(['name' => 'foo']);
+        $dto2 = $dto1->unset('name');
+
+        $this->assertTrue($dto1->hasProperty('name'));
+        $this->assertFalse($dto2->hasProperty('name'));
+        $this->assertNotSame($dto1, $dto2);
+    }
+
+    /**
+     * @test
+     */
+    public function fails_when_unsetting_a_property_of_not_partial_dto()
+    {
+        $error = "Unable to unset property 'name'. DTO [Cerbero\Dto\Dtos\NoPropertiesDto] does not accept partial data";
+
+        $this->expectException(UnsetDtoPropertyException::class);
+        $this->expectExceptionMessage($error);
+
+        NoPropertiesDto::make([])->unset('name');
+    }
+
+    /**
+     * @test
+     */
+    public function unsets_nested_properties_of_mutabled_dtos_in_same_instance()
+    {
+        $dto1 = PartialDto::make(['sample' => ['enabled' => true]], MUTABLE);
+        $dto2 = $dto1->unset('sample.enabled');
+
+        $this->assertFalse($dto1->hasProperty('sample.enabled'));
+        $this->assertFalse($dto2->hasProperty('sample.enabled'));
+        $this->assertSame($dto1, $dto2);
+        $this->assertInstanceOf(PartialDto::class, $dto1);
+        $this->assertInstanceOf(PartialDto::class, $dto2);
+    }
+
+    /**
+     * @test
+     */
+    public function unsets_nested_properties_of_immutabled_dtos_in_cloned_instance()
+    {
+        $dto1 = PartialDto::make(['sample' => ['enabled' => true]]);
+        $dto2 = $dto1->unset('sample.enabled');
+
+        $this->assertTrue($dto1->hasProperty('sample.enabled'));
+        $this->assertFalse($dto2->hasProperty('sample.enabled'));
+        $this->assertNotSame($dto1, $dto2);
+        $this->assertInstanceOf(PartialDto::class, $dto1);
+        $this->assertInstanceOf(PartialDto::class, $dto2);
+    }
+
+    /**
+     * @test
+     */
+    public function fails_when_unsetting_a_missing_nested_property()
+    {
+        $this->expectException(UnknownDtoPropertyException::class);
+        $this->expectExceptionMessage("Unknown property 'sample' in the DTO [Cerbero\Dto\Dtos\PartialDto]");
+
+        PartialDto::make(['name' => 'foo'])->unset('sample.name');
     }
 
     /**
@@ -296,6 +409,88 @@ class DtoTest extends TestCase
         $this->assertTrue($dto1->hasProperty('sample'));
         $this->assertTrue($dto1->sample->enabled);
         $this->assertSame(PARTIAL | BOOL_DEFAULT_TO_FALSE | MUTABLE, $dto1->getFlags());
+    }
+
+    /**
+     * @test
+     */
+    public function keeps_only_some_properties()
+    {
+        $dto1 = PartialDto::make([
+            'name' => 'bar',
+            'sample' => [
+                'enabled' => true,
+            ],
+        ], NULLABLE_DEFAULT_TO_NULL);
+
+        $dto2 = $dto1->only(['sample'], MUTABLE);
+
+        $this->assertSame(['name', 'sample', 'nullable'], $dto1->getPropertyNames());
+        $this->assertSame(['sample'], $dto2->getPropertyNames());
+        $this->assertSame(PARTIAL | NULLABLE_DEFAULT_TO_NULL, $dto1->getFlags());
+        $this->assertSame(PARTIAL | MUTABLE, $dto2->getFlags());
+        $this->assertNotSame($dto1, $dto2);
+    }
+
+    /**
+     * @test
+     */
+    public function keeps_only_some_properties_in_same_instance_if_mutable()
+    {
+        $dto1 = PartialDto::make([
+            'name' => 'bar',
+            'sample' => [
+                'enabled' => true,
+            ],
+        ], MUTABLE);
+
+        $dto2 = $dto1->only(['sample'], BOOL_DEFAULT_TO_FALSE);
+        $this->assertSame(['sample'], $dto1->getPropertyNames());
+        $this->assertSame(['sample'], $dto2->getPropertyNames());
+        $this->assertSame(PARTIAL | MUTABLE | BOOL_DEFAULT_TO_FALSE, $dto1->getFlags());
+        $this->assertSame(PARTIAL | MUTABLE | BOOL_DEFAULT_TO_FALSE, $dto2->getFlags());
+        $this->assertSame($dto1, $dto2);
+    }
+
+    /**
+     * @test
+     */
+    public function excludes_some_properties()
+    {
+        $dto1 = PartialDto::make([
+            'name' => 'bar',
+            'sample' => [
+                'enabled' => true,
+            ],
+        ]);
+
+        $dto2 = $dto1->except(['sample'], BOOL_DEFAULT_TO_FALSE);
+
+        $this->assertSame(['name', 'sample'], $dto1->getPropertyNames());
+        $this->assertSame(['name'], $dto2->getPropertyNames());
+        $this->assertSame(PARTIAL, $dto1->getFlags());
+        $this->assertSame(PARTIAL | BOOL_DEFAULT_TO_FALSE, $dto2->getFlags());
+        $this->assertNotSame($dto1, $dto2);
+    }
+
+    /**
+     * @test
+     */
+    public function excludes_some_properties_in_same_instance_if_mutable()
+    {
+        $dto1 = PartialDto::make([
+            'name' => 'bar',
+            'sample' => [
+                'enabled' => true,
+            ],
+        ], MUTABLE);
+
+        $dto2 = $dto1->except(['sample'], BOOL_DEFAULT_TO_FALSE);
+        $this->assertSame(['name'], $dto1->getPropertyNames());
+        $this->assertSame(['name'], $dto2->getPropertyNames());
+        $this->assertSame(PARTIAL | MUTABLE | BOOL_DEFAULT_TO_FALSE, $dto1->getFlags());
+        $this->assertSame(PARTIAL | MUTABLE | BOOL_DEFAULT_TO_FALSE, $dto2->getFlags());
+        $this->assertSame($dto1, $dto2);
     }
 
     /**
@@ -440,7 +635,7 @@ class DtoTest extends TestCase
     /**
      * @test
      */
-    public function fails_when_unsetting_a_property_of_not_partial_dto()
+    public function fails_when_unsetting_a_property_of_not_partial_dto_as_an_array()
     {
         $error = "Unable to unset property 'name'. DTO [Cerbero\Dto\Dtos\NoPropertiesDto] does not accept partial data";
 
@@ -448,18 +643,6 @@ class DtoTest extends TestCase
         $this->expectExceptionMessage($error);
 
         $dto = NoPropertiesDto::make([], MUTABLE);
-        unset($dto['name']);
-    }
-
-    /**
-     * @test
-     */
-    public function fails_when_unsetting_a_property_that_is_not_set()
-    {
-        $this->expectException(UnknownDtoPropertyException::class);
-        $this->expectExceptionMessage("Unknown property 'name' in the DTO [Cerbero\Dto\Dtos\PartialDto]");
-
-        $dto = PartialDto::make([], MUTABLE);
         unset($dto['name']);
     }
 

@@ -17,11 +17,25 @@ class DtoPropertyTypeTest extends TestCase
      */
     public function retrieves_info()
     {
+        $type = new DtoPropertyType(SampleDto::class, false);
+
+        $this->assertSame(SampleDto::class, $type->name());
+        $this->assertFalse($type->isCollection());
+        $this->assertTrue($type->isDto());
+        $this->assertSame(SampleDto::class, $type->declaredName());
+    }
+
+    /**
+     * @test
+     */
+    public function retrieves_collection_info()
+    {
         $type = new DtoPropertyType(SampleDto::class, true);
 
         $this->assertSame(SampleDto::class, $type->name());
         $this->assertTrue($type->isCollection());
         $this->assertTrue($type->isDto());
+        $this->assertSame('Cerbero\Dto\Dtos\SampleDto[]', $type->declaredName());
     }
 
     /**
