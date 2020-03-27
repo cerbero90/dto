@@ -77,10 +77,25 @@ class DtoPropertyTypes
         $this->includeArray = $this->includeArray || $type->name() == 'array';
         $this->includeBool = $this->includeBool || $type->name() == 'bool';
         $this->expectCollection = $this->expectCollection || $type->isCollection();
-        $this->expectedDto = $this->expectedDto ?: ($type->isDto() ? $type->name() : null);
-        $this->declaredNames[] = $type->name() . ($type->isCollection() ? '[]' : null);
+        $this->expectedDto = $this->getExpectedDto($type);
+        $this->declaredNames[] = $type->declaredName();
 
         return $this;
+    }
+
+    /**
+     * Retrieve the expected DTO if any
+     *
+     * @param DtoPropertyType $type
+     * @return string|null
+     */
+    protected function getExpectedDto(DtoPropertyType $type): ?string
+    {
+        if ($this->expectedDto) {
+            return $this->expectedDto;
+        }
+
+        return $type->isDto() ? $type->name() : null;
     }
 
     /**
@@ -108,9 +123,22 @@ class DtoPropertyTypes
      */
     public function haveDefaultValue(int $flags)
     {
-        return (($this->includeArray || $this->expectCollection) && ($flags & ARRAY_DEFAULT_TO_EMPTY_ARRAY)) ||
+        return $this->arraysHaveDefault($flags) ||
             ($this->includeBool && ($flags & BOOL_DEFAULT_TO_FALSE)) ||
             ($this->includeNull && ($flags & NULLABLE_DEFAULT_TO_NULL));
+    }
+
+    /**
+     * Determine whether array types have a default value
+     *
+     * @param int $flags
+     * @return bool
+     */
+    protected function arraysHaveDefault(int $flags): bool
+    {
+        $includeArray = $this->includeArray || $this->expectCollection;
+
+        return $includeArray && ($flags & ARRAY_DEFAULT_TO_EMPTY_ARRAY);
     }
 
     /**

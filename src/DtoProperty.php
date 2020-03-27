@@ -2,6 +2,7 @@
 
 namespace Cerbero\Dto;
 
+use Cerbero\Dto\Manipulators\ArrayConverter;
 use Cerbero\Dto\Exceptions\UnexpectedValueException;
 
 /**
@@ -133,10 +134,32 @@ class DtoProperty
             return $this->processedValue;
         }
 
-        $this->processedValue = $this->types->expectedDto ? $this->castRawValueIntoDto() : $this->rawValue;
+        $this->processedValue = $this->processRawValue();
         $this->valueIsProcessed = true;
 
         return $this->processedValue;
+    }
+
+    /**
+     * Retrieve the processed raw value
+     *
+     * @return mixed
+     */
+    protected function processRawValue()
+    {
+        if ($this->rawValue === null) {
+            return null;
+        }
+
+        foreach ($this->types->all as $type) {
+            if (!class_exists($class = $type->name())) {
+                continue;
+            } elseif ($converter = ArrayConverter::instance()->getConverterByClass($class)) {
+                return $converter->toDto($this->rawValue);
+            }
+        }
+
+        return $this->types->expectedDto ? $this->castRawValueIntoDto() : $this->rawValue;
     }
 
     /**
@@ -146,10 +169,6 @@ class DtoProperty
      */
     protected function castRawValueIntoDto()
     {
-        if ($this->rawValue === null) {
-            return null;
-        }
-
         $dto = $this->types->expectedDto;
 
         if (!$this->types->expectCollection) {

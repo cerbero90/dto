@@ -1,11 +1,11 @@
 <?php
 
-namespace Cerbero\Dto;
-
 /**
  * The flags defining how DTOs behave.
  *
  */
+
+namespace Cerbero\Dto;
 
 /**
  * Do not apply any special behavior.
