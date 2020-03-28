@@ -148,9 +148,7 @@ class DtoPropertiesMapper
             unset($data[$name]);
         }
 
-        if ($data && !($flags & IGNORE_UNKNOWN_PROPERTIES)) {
-            throw new UnknownDtoPropertyException($this->dtoClass, key($data));
-        }
+        $this->checkUnknownProperties($data, $flags);
 
         return $this->mappedProperties = $mappedProperties;
     }
@@ -246,5 +244,20 @@ class DtoPropertiesMapper
 
             return $types->addType(new DtoPropertyType($name, $isCollection));
         }, new DtoPropertyTypes());
+    }
+
+    /**
+     * Check whether the given data contains unknown properties
+     *
+     * @param array $data
+     * @param int $flags
+     * @return void
+     * @throws UnknownDtoPropertyException
+     */
+    protected function checkUnknownProperties(array $data, int $flags): void
+    {
+        if ($data && !($flags & IGNORE_UNKNOWN_PROPERTIES)) {
+            throw new UnknownDtoPropertyException($this->dtoClass, key($data));
+        }
     }
 }
