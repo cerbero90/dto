@@ -8,6 +8,7 @@ use Cerbero\Dto\Dtos\SampleDto;
 use Cerbero\Dto\Exceptions\DtoNotFoundException;
 use Cerbero\Dto\Exceptions\InvalidDocCommentException;
 use Cerbero\Dto\Exceptions\MissingValueException;
+use Cerbero\Dto\Exceptions\UnknownDtoPropertyException;
 use PHPUnit\Framework\TestCase;
 use ReflectionProperty;
 use stdClass;
@@ -95,6 +96,26 @@ class DtoPropertiesMapperTest extends TestCase
         $this->expectExceptionMessage($error);
 
         DtoPropertiesMapper::for(SampleDto::class)->map([], NONE);
+    }
+
+    /**
+     * @test
+     */
+    public function fails_if_extra_data_is_not_ignored()
+    {
+        $this->expectException(UnknownDtoPropertyException::class);
+        $this->expectExceptionMessage("Unknown property 'extra' in the DTO [Cerbero\Dto\Dtos\SampleDto]");
+
+        $data = [
+            'object' => new stdClass,
+            'dtos' => [new NoPropertiesDto],
+            'sample' => new SampleClass,
+            'name' => 'foo',
+            'enabled' => true,
+            'extra' => 123,
+        ];
+
+        DtoPropertiesMapper::for(SampleDto::class)->map($data, NONE);
     }
 
     /**
