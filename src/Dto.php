@@ -60,6 +60,7 @@ abstract class Dto implements IteratorAggregate, ArrayAccess, Serializable, Json
      * @throws Exceptions\InvalidDocCommentException
      * @throws Exceptions\MissingValueException
      * @throws Exceptions\UnexpectedValueException
+     * @throws Exceptions\UnknownDtoPropertyException
      */
     protected function mapData(array $data): array
     {
