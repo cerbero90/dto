@@ -18,34 +18,6 @@ use const Cerbero\Dto\MUTABLE;
 trait TurnsIntoArray
 {
     /**
-     * The array converter.
-     *
-     * @var ArrayConverter
-     */
-    protected static $arrayConverter;
-
-    /**
-     * Retrieve the array converter
-     *
-     * @return ArrayConverter
-     */
-    public static function getArrayConverter(): ArrayConverter
-    {
-        return static::$arrayConverter ?: ArrayConverter::instance();
-    }
-
-    /**
-     * Set the given array converter
-     *
-     * @param ArrayConverter
-     * @return void
-     */
-    public static function setArrayConverter(ArrayConverter $converter): void
-    {
-        static::$arrayConverter = $converter;
-    }
-
-    /**
      * Retrieve the DTO as an array
      *
      * @return array
@@ -55,7 +27,7 @@ trait TurnsIntoArray
         $data = [];
 
         foreach ($this->getPropertiesMap() as $name => $property) {
-            $data[$name] = static::getArrayConverter()->convert($property->value());
+            $data[$name] = ArrayConverter::instance()->convert($property->value());
         }
 
         return $data;

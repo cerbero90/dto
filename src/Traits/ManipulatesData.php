@@ -2,6 +2,8 @@
 
 namespace Cerbero\Dto\Traits;
 
+use Cerbero\Dto\Manipulators\ArrayConverter;
+
 use const Cerbero\Dto\MUTABLE;
 use const Cerbero\Dto\NONE;
 use const Cerbero\Dto\PARTIAL;
@@ -21,7 +23,7 @@ trait ManipulatesData
      */
     public function merge(iterable $data, int $flags = NONE): self
     {
-        $replacements = static::getArrayConverter()->convert($data);
+        $replacements = ArrayConverter::instance()->convert($data);
         $mergedData = array_replace_recursive($this->toArray(), $replacements);
         $mergedFlags = $this->mergeFlags($this->getFlags(), $flags);
 

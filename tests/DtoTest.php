@@ -63,20 +63,6 @@ class DtoTest extends TestCase
     /**
      * @test
      */
-    public function sets_and_gets_singleton_of_array_converter()
-    {
-        $converter = PartialDto::getArrayConverter();
-
-        $this->assertInstanceOf(ArrayConverter::class, $converter);
-
-        PartialDto::setArrayConverter($converter);
-
-        $this->assertSame($converter, PartialDto::getArrayConverter());
-    }
-
-    /**
-     * @test
-     */
     public function returns_false_if_property_is_missing()
     {
         $dto = new PartialDto(['name' => 'foo']);
