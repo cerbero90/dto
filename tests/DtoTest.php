@@ -277,6 +277,18 @@ class DtoTest extends TestCase
     /**
      * @test
      */
+    public function sets_nested_properties_not_yet_mapped()
+    {
+        $dto1 = PartialDto::make(['name' => 'foo']);
+        $dto2 = $dto1->set('sample.partial.name', 'bar');
+
+        $this->assertFalse($dto1->hasProperty('sample.partial.name'));
+        $this->assertSame('bar', $dto2->get('sample.partial.name'));
+    }
+
+    /**
+     * @test
+     */
     public function unset_its_own_property_when_mutable()
     {
         $dto = PartialDto::make(['name' => 'foo'], MUTABLE);
