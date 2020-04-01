@@ -2,6 +2,7 @@
 
 namespace Cerbero\Dto;
 
+use Cerbero\Dto\Dtos\CamelCaseDto;
 use Cerbero\Dto\Manipulators\ArrayConverter;
 use Cerbero\Dto\Dtos\NoPropertiesDto;
 use Cerbero\Dto\Dtos\PartialDto;
@@ -531,6 +532,36 @@ class DtoTest extends TestCase
         $dto = PartialDto::make($data);
 
         $this->assertSame($data, $dto->toArray());
+    }
+
+    /**
+     * @test
+     */
+    public function can_be_converted_into_snake_case_array()
+    {
+        $data = [
+            'isAdmin' => true,
+            'partialDto' => [
+                'name' => 'bar',
+                'sample' => [
+                    'enabled' => true,
+                ],
+            ],
+        ];
+
+        $expected = [
+            'is_admin' => true,
+            'partial_dto' => [
+                'name' => 'bar',
+                'sample' => [
+                    'enabled' => true,
+                ],
+            ],
+        ];
+
+        $dto = CamelCaseDto::make($data, PARTIAL);
+
+        $this->assertSame($expected, $dto->toSnakeCaseArray());
     }
 
     /**
