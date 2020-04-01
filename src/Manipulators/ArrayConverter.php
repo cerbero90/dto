@@ -9,6 +9,14 @@ namespace Cerbero\Dto\Manipulators;
 class ArrayConverter
 {
     /**
+     * The snake case pattern
+     *
+     * - Look behind for lower case letters or digits
+     * - Look ahead for upper case letters
+     */
+    public const RE_SNAKE_CASE = '/(?<=[a-z\d])(?=[A-Z])/';
+
+    /**
      * The class instance.
      *
      * @var self
@@ -75,9 +83,10 @@ class ArrayConverter
      * Convert the given item into an array
      *
      * @param mixed $item
+     * @param bool $snakeCase
      * @return mixed
      */
-    public function convert($item)
+    public function convert($item, $snakeCase = false)
     {
         if (is_object($item) && $converter = $this->getConverterByInstance($item)) {
             return $converter->fromDto($item);
@@ -87,7 +96,8 @@ class ArrayConverter
             $result = [];
 
             foreach ($item as $key => $value) {
-                $result[$key] = $this->convert($value);
+                $formattedKey = $this->formatArrayKey($key, $snakeCase);
+                $result[$formattedKey] = $this->convert($value);
             }
 
             return $result;
@@ -129,6 +139,22 @@ class ArrayConverter
     protected function resolveConverter(string $converter): ValueConverter
     {
         return new $converter();
+    }
+
+    /**
+     * Retrieve the formatted array key
+     *
+     * @param string $key
+     * @param bool $snakeCase
+     * @return string
+     */
+    protected function formatArrayKey(string $key, bool $snakeCase): string
+    {
+        if (!$snakeCase) {
+            return $key;
+        }
+
+        return strtolower(preg_replace(static::RE_SNAKE_CASE, '_', $key));
     }
 
     /**
