@@ -11,6 +11,7 @@ use Cerbero\Dto\SampleClass;
  * @property-read \stdClass|null $object
  * @property-read NoPropertiesDto[] $dtos
  * @property-read SampleClass $sample
+ * @property-read PartialDto $partial
  * @property-read string $name
  * @property-read bool $enabled
  */
