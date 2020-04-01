@@ -4,6 +4,9 @@ namespace Cerbero\Dto;
 
 use Cerbero\Dto\Dtos\NoPropertiesDto;
 use Cerbero\Dto\Exceptions\UnexpectedValueException;
+use Cerbero\Dto\Manipulators\ArrayConverter;
+use Cerbero\Dto\Manipulators\DateTimeConverter;
+use DateTime;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -284,5 +287,22 @@ class DtoPropertyTest extends TestCase
 
         $this->assertSame($types, $property->getTypes());
         $this->assertNotSame($types, $clone->getTypes());
+    }
+
+    /**
+     * @test
+     */
+    public function array_converter_can_alter_processed_values()
+    {
+        ArrayConverter::instance()->setConversions([
+            DateTime::class => DateTimeConverter::class,
+        ]);
+
+        $types = new DtoPropertyTypes;
+        $types->addType(new DtoPropertyType(DateTime::class, false));
+
+        $property = DtoProperty::create('foo', '2020-01-01', $types, MUTABLE);
+
+        $this->assertInstanceOf(DateTime::class, $property->value());
     }
 }
