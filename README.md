@@ -349,6 +349,8 @@ We can call the method `toArray()` to get an array representation of a DTO and i
 $user->toArray();
 ```
 
+Alternatively, for project compatibility or conventions, we can call the method `toSnakeCaseArray()` to turn the resulting array keys into snake case.
+
 Sometimes we may want a value to be converted when a DTO turns into an array. To do so we can register value converters in the `ArrayConverter`:
 
 ```php

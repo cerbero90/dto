@@ -2,6 +2,7 @@
 
 namespace Cerbero\Dto;
 
+use Cerbero\Dto\Dtos\CamelCaseDto;
 use Cerbero\Dto\Manipulators\ArrayConverter;
 use Cerbero\Dto\Dtos\NoPropertiesDto;
 use Cerbero\Dto\Dtos\PartialDto;
@@ -58,20 +59,6 @@ class DtoTest extends TestCase
     public function retrieves_default_flags()
     {
         $this->assertSame(PARTIAL, PartialDto::getDefaultFlags());
-    }
-
-    /**
-     * @test
-     */
-    public function sets_and_gets_singleton_of_array_converter()
-    {
-        $converter = PartialDto::getArrayConverter();
-
-        $this->assertInstanceOf(ArrayConverter::class, $converter);
-
-        PartialDto::setArrayConverter($converter);
-
-        $this->assertSame($converter, PartialDto::getArrayConverter());
     }
 
     /**
@@ -247,6 +234,43 @@ class DtoTest extends TestCase
         $this->expectExceptionMessage("Unknown property 'missing' in the DTO [Cerbero\Dto\Dtos\PartialDto]");
 
         PartialDto::make(['name' => 'foo'])->set('missing', 123);
+    }
+
+    /**
+     * @test
+     */
+    public function sets_properties_not_yet_mapped()
+    {
+        $dto1 = PartialDto::make(['name' => 'foo']);
+        $dto2 = $dto1->set('sample.enabled', true);
+
+        $this->assertFalse($dto1->hasProperty('sample.enabled'));
+        $this->assertTrue($dto2->get('sample.enabled'));
+    }
+
+    /**
+     * @test
+     */
+    public function sets_properties_not_yet_mapped_in_same_instance_if_mutable()
+    {
+        $dto1 = PartialDto::make(['name' => 'foo'], MUTABLE);
+        $dto2 = $dto1->set('nullable', 123);
+
+        $this->assertTrue($dto1->hasProperty('nullable'));
+        $this->assertSame(123, $dto2->get('nullable'));
+        $this->assertSame($dto1, $dto2);
+    }
+
+    /**
+     * @test
+     */
+    public function sets_nested_properties_not_yet_mapped()
+    {
+        $dto1 = PartialDto::make(['name' => 'foo']);
+        $dto2 = $dto1->set('sample.partial.name', 'bar');
+
+        $this->assertFalse($dto1->hasProperty('sample.partial.name'));
+        $this->assertSame('bar', $dto2->get('sample.partial.name'));
     }
 
     /**
@@ -508,6 +532,36 @@ class DtoTest extends TestCase
         $dto = PartialDto::make($data);
 
         $this->assertSame($data, $dto->toArray());
+    }
+
+    /**
+     * @test
+     */
+    public function can_be_converted_into_snake_case_array()
+    {
+        $data = [
+            'isAdmin' => true,
+            'partialDto' => [
+                'name' => 'bar',
+                'sample' => [
+                    'enabled' => true,
+                ],
+            ],
+        ];
+
+        $expected = [
+            'is_admin' => true,
+            'partial_dto' => [
+                'name' => 'bar',
+                'sample' => [
+                    'enabled' => true,
+                ],
+            ],
+        ];
+
+        $dto = CamelCaseDto::make($data, PARTIAL);
+
+        $this->assertSame($expected, $dto->toSnakeCaseArray());
     }
 
     /**

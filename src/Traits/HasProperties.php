@@ -89,4 +89,48 @@ trait HasProperties
 
         throw new UnknownDtoPropertyException(static::class, $nestedProperty);
     }
+
+    /**
+     * Retrieve the given DTO property or map it if not mapped yet
+     *
+     * @param string $property
+     * @param mixed $value
+     * @return void
+     */
+    protected function setPropertyValueOrMap(string $property, $value): void
+    {
+        if ($this->hasProperty($property)) {
+            $this->getProperty($property)->setValue($value, $this->getFlags());
+            return;
+        }
+
+        $data = $this->toArray();
+
+        if (strpos($property, '.') === false) {
+            $data[$property] = $value;
+        } else {
+            [$property, $nestedProperty] = explode('.', $property, 2);
+            $data[$property] = $this->resolveNestedValue($nestedProperty, $value);
+        }
+
+        $this->propertiesMap = $this->mapData($data);
+    }
+
+    /**
+     * Retrieve a nested value following the dot notation
+     *
+     * @param string $property
+     * @param mixed $value
+     * @return array
+     */
+    protected function resolveNestedValue(string $property, $value): array
+    {
+        if (strpos($property, '.') === false) {
+            return [$property => $value];
+        }
+
+        [$property, $nestedProperty] = explode('.', $property, 2);
+
+        return [$property => $this->resolveNestedValue($nestedProperty, $value)];
+    }
 }

@@ -4,6 +4,7 @@ namespace Cerbero\Dto;
 
 use Cerbero\Dto\Dtos\NoDocCommentDto;
 use Cerbero\Dto\Dtos\NoPropertiesDto;
+use Cerbero\Dto\Dtos\PartialDto;
 use Cerbero\Dto\Dtos\SampleDto;
 use Cerbero\Dto\Exceptions\DtoNotFoundException;
 use Cerbero\Dto\Exceptions\InvalidDocCommentException;
@@ -110,6 +111,7 @@ class DtoPropertiesMapperTest extends TestCase
             'object' => new stdClass,
             'dtos' => [new NoPropertiesDto],
             'sample' => new SampleClass,
+            'partial' => new PartialDto,
             'name' => 'foo',
             'enabled' => true,
             'extra' => 123,
@@ -127,6 +129,7 @@ class DtoPropertiesMapperTest extends TestCase
             'object' => new stdClass,
             'dtos' => [new NoPropertiesDto],
             'sample' => new SampleClass,
+            'partial' => new PartialDto,
             'name' => 'foo',
             'enabled' => true,
         ];
@@ -134,7 +137,7 @@ class DtoPropertiesMapperTest extends TestCase
         $names = array_keys($data);
         $map = DtoPropertiesMapper::for(SampleDto::class)->map($data, NONE);
 
-        $this->assertCount(5, $map);
+        $this->assertCount(6, $map);
 
         foreach ($map as $name => $propery) {
             $this->assertContains($name, $names);
@@ -185,12 +188,13 @@ class DtoPropertiesMapperTest extends TestCase
         $data = [
             'sample' => new SampleClass,
             'name' => 'foo',
+            'partial' => new PartialDto,
         ];
 
         $defaultToFlags = ARRAY_DEFAULT_TO_EMPTY_ARRAY | NULLABLE_DEFAULT_TO_NULL | BOOL_DEFAULT_TO_FALSE;
         $map = DtoPropertiesMapper::for(SampleDto::class)->map($data, $defaultToFlags);
 
-        $this->assertCount(5, $map);
+        $this->assertCount(6, $map);
 
         foreach ($map as $name => $propery) {
             $this->assertInstanceOf(DtoProperty::class, $propery);
@@ -243,6 +247,7 @@ class DtoPropertiesMapperTest extends TestCase
             'object' => new stdClass,
             'dtos' => [new NoPropertiesDto],
             'sample' => new SampleClass,
+            'partial' => new PartialDto,
             'name' => 'foo',
             'enabled' => true,
         ];
@@ -252,12 +257,13 @@ class DtoPropertiesMapperTest extends TestCase
         $data = [
             'sample' => new SampleClass,
             'name' => 'foo',
+            'partial' => new PartialDto,
         ];
 
         $defaultToFlags = ARRAY_DEFAULT_TO_EMPTY_ARRAY | NULLABLE_DEFAULT_TO_NULL | BOOL_DEFAULT_TO_FALSE;
         $map = DtoPropertiesMapper::for(SampleDto::class)->map($data, $defaultToFlags);
 
-        $this->assertCount(5, $map);
+        $this->assertCount(6, $map);
 
         foreach ($map as $name => $propery) {
             $this->assertInstanceOf(DtoProperty::class, $propery);

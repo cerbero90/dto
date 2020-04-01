@@ -60,7 +60,7 @@ trait HasValues
 
         try {
             $value = Listener::instance()->setting(static::class, $property, $value);
-            $dto->getProperty($property)->setValue($value, $flags);
+            $dto->setPropertyValueOrMap($property, $value);
         } catch (UnknownDtoPropertyException $e) {
             if (!($flags & IGNORE_UNKNOWN_PROPERTIES)) {
                 throw $e;
