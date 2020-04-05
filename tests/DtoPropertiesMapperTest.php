@@ -2,6 +2,7 @@
 
 namespace Cerbero\Dto;
 
+use Cerbero\Dto\Dtos\CamelCaseDto;
 use Cerbero\Dto\Dtos\NoDocCommentDto;
 use Cerbero\Dto\Dtos\NoPropertiesDto;
 use Cerbero\Dto\Dtos\PartialDto;
@@ -305,5 +306,46 @@ class DtoPropertiesMapperTest extends TestCase
         $this->assertSame('bool', $types->all[0]->name());
         $this->assertFalse($types->all[0]->isCollection());
         $this->assertFalse($map['enabled']->getRawValue());
+    }
+
+    /**
+     * @test
+     */
+    public function maps_snake_case_properties_into_camel_case_properties()
+    {
+        $data = [
+            'is_admin' => true,
+            'partial_dto' => ['name' => 'foo'],
+        ];
+
+        $namesMap = [
+            'isAdmin' => 'is_admin',
+            'partialDto' => 'partial_dto',
+        ];
+
+        $names = array_keys($namesMap);
+        $map = DtoPropertiesMapper::for(CamelCaseDto::class)->map($data, NONE);
+
+        $this->assertCount(2, $map);
+
+        foreach ($map as $name => $propery) {
+            $this->assertContains($name, $names);
+            $this->assertInstanceOf(DtoProperty::class, $propery);
+            $this->assertSame($name, $propery->getName());
+            $this->assertSame($data[$namesMap[$name]], $propery->getRawValue());
+            $this->assertSame(NONE, $propery->getFlags());
+        }
+
+        $types = $map['isAdmin']->getTypes();
+        $this->assertInstanceOf(DtoPropertyTypes::class, $types);
+        $this->assertCount(1, $types->all);
+        $this->assertSame('bool', $types->all[0]->name());
+        $this->assertFalse($types->all[0]->isCollection());
+
+        $types = $map['partialDto']->getTypes();
+        $this->assertInstanceOf(DtoPropertyTypes::class, $types);
+        $this->assertCount(1, $types->all);
+        $this->assertSame('Cerbero\Dto\Dtos\PartialDto', $types->all[0]->name());
+        $this->assertFalse($types->all[0]->isCollection());
     }
 }
