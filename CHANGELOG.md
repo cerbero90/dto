@@ -4,6 +4,16 @@ All notable changes to `dto` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](http://keepachangelog.com/) principles.
 
+## 1.3.0 - 2020-04-05
+
+### Added
+- DTO properties in camel case can be mapped with data in snake case
+- Method `toArray()` converts a DTO into an array with snake case keys
+
+### Removed
+- Method `toSnakeCaseArray()`: no longer needed as property names are already turned into snake case by `toArray()`
+
+
 ## 1.2.0 - 2020-04-01
 
 ### Added
