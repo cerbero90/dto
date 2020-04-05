@@ -537,7 +537,7 @@ class DtoTest extends TestCase
     /**
      * @test
      */
-    public function can_be_converted_into_snake_case_array()
+    public function turns_camel_case_properties_into_snake_case_keys_when_conving_into_array()
     {
         $data = [
             'isAdmin' => true,
@@ -559,9 +559,9 @@ class DtoTest extends TestCase
             ],
         ];
 
-        $dto = CamelCaseDto::make($data, PARTIAL);
+        $dto = CamelCaseDto::make($data);
 
-        $this->assertSame($expected, $dto->toSnakeCaseArray());
+        $this->assertSame($expected, $dto->toArray());
     }
 
     /**

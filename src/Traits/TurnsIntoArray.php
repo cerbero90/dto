@@ -27,22 +27,6 @@ trait TurnsIntoArray
         $data = [];
 
         foreach ($this->getPropertiesMap() as $name => $property) {
-            $data[$name] = ArrayConverter::instance()->convert($property->value());
-        }
-
-        return $data;
-    }
-
-    /**
-     * Retrieve the DTO as an array with snake-case keys
-     *
-     * @return array
-     */
-    public function toSnakeCaseArray(): array
-    {
-        $data = [];
-
-        foreach ($this->getPropertiesMap() as $name => $property) {
             $key = strtolower(preg_replace(ArrayConverter::RE_SNAKE_CASE, '_', $name));
             $data[$key] = ArrayConverter::instance()->convert($property->value(), true);
         }
