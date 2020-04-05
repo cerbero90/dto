@@ -6,6 +6,7 @@ use Cerbero\Dto\Exceptions\DtoNotFoundException;
 use Cerbero\Dto\Exceptions\InvalidDocCommentException;
 use Cerbero\Dto\Exceptions\MissingValueException;
 use Cerbero\Dto\Exceptions\UnknownDtoPropertyException;
+use Cerbero\Dto\Manipulators\ArrayConverter;
 use ReflectionClass;
 use ReflectionException;
 
@@ -133,10 +134,11 @@ class DtoPropertiesMapper
         foreach ($rawProperties as $name => $rawTypes) {
             $cachedProperty = $this->mappedProperties[$name] ?? null;
             $types = $cachedProperty ? $cachedProperty->getTypes() : $this->parseTypes($rawTypes, $useStatements);
+            $key = $this->getPropertyKeyFromData($name, $data);
 
-            if (!array_key_exists($name, $data)) {
+            if (!array_key_exists($key, $data)) {
                 if ($types->haveDefaultValue($flags)) {
-                    $data[$name] = $types->getDefaultValue($flags);
+                    $data[$key] = $types->getDefaultValue($flags);
                 } elseif ($flags & PARTIAL) {
                     continue;
                 } else {
@@ -144,8 +146,8 @@ class DtoPropertiesMapper
                 }
             }
 
-            $mappedProperties[$name] = DtoProperty::create($name, $data[$name], $types, $flags);
-            unset($data[$name]);
+            $mappedProperties[$name] = DtoProperty::create($name, $data[$key], $types, $flags);
+            unset($data[$key]);
         }
 
         $this->checkUnknownProperties($data, $flags);
@@ -244,6 +246,22 @@ class DtoPropertiesMapper
 
             return $types->addType(new DtoPropertyType($name, $isCollection));
         }, new DtoPropertyTypes());
+    }
+
+    /**
+     * Retrieve the key for the given property in the provided data
+     *
+     * @param string $property
+     * @param array $data
+     * @return string
+     */
+    protected function getPropertyKeyFromData(string $property, array $data): string
+    {
+        if (array_key_exists($property, $data)) {
+            return $property;
+        }
+
+        return strtolower(preg_replace(ArrayConverter::RE_SNAKE_CASE, '_', $property));
     }
 
     /**

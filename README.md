@@ -336,11 +336,12 @@ foreach($dto as $propertyName => $propertyValue) {
 }
 ```
 
-We can call the method `toArray()` to get an array representation of a DTO and its nested DTOs:
+We can call the method `toArray()` to get an array representation of a DTO and its nested DTOs. The resulting array will have keys in snake case:
 
 ```php
 // [
 //     'name' => 'Anna',
+//     'is_admin' => true,
 //     'address' => [
 //         'street' => 'King Street',
 //         'unit' => 10,
@@ -348,8 +349,6 @@ We can call the method `toArray()` to get an array representation of a DTO and i
 // ]
 $user->toArray();
 ```
-
-Alternatively, for project compatibility or conventions, we can call the method `toSnakeCaseArray()` to turn the resulting array keys into snake case.
 
 Sometimes we may want a value to be converted when a DTO turns into an array. To do so we can register value converters in the `ArrayConverter`:
 
