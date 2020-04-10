@@ -3,6 +3,9 @@
 namespace Cerbero\Dto;
 
 use Cerbero\Dto\Dtos\SampleDto;
+use Cerbero\Dto\Manipulators\ArrayConverter;
+use Cerbero\Dto\Manipulators\DateTimeConverter;
+use DateTime;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -40,6 +43,8 @@ class DtoPropertyTypesTest extends TestCase
         $this->assertTrue($this->types->includeBool);
         $this->assertTrue($this->types->expectCollection);
         $this->assertNull($this->types->expectedDto);
+        $this->assertNull($this->types->expectedConverter);
+        $this->assertSame('bool', $this->types->expectedPrimitive);
         $this->assertSame(['bool[]'], $this->types->declaredNames);
 
         $this->types->addType($type = new DtoPropertyType('null', false));
@@ -50,6 +55,8 @@ class DtoPropertyTypesTest extends TestCase
         $this->assertTrue($this->types->includeBool);
         $this->assertTrue($this->types->expectCollection);
         $this->assertNull($this->types->expectedDto);
+        $this->assertNull($this->types->expectedConverter);
+        $this->assertSame('bool', $this->types->expectedPrimitive);
         $this->assertSame(['bool[]', 'null'], $this->types->declaredNames);
 
         $this->types->addType($type = new DtoPropertyType('array', false));
@@ -60,6 +67,8 @@ class DtoPropertyTypesTest extends TestCase
         $this->assertTrue($this->types->includeBool);
         $this->assertTrue($this->types->expectCollection);
         $this->assertNull($this->types->expectedDto);
+        $this->assertNull($this->types->expectedConverter);
+        $this->assertSame('bool', $this->types->expectedPrimitive);
         $this->assertSame(['bool[]', 'null', 'array'], $this->types->declaredNames);
 
         $this->types->addType($type = new DtoPropertyType(SampleDto::class, false));
@@ -70,7 +79,23 @@ class DtoPropertyTypesTest extends TestCase
         $this->assertTrue($this->types->includeBool);
         $this->assertTrue($this->types->expectCollection);
         $this->assertSame(SampleDto::class, $this->types->expectedDto);
+        $this->assertNull($this->types->expectedConverter);
+        $this->assertSame('bool', $this->types->expectedPrimitive);
         $this->assertSame(['bool[]', 'null', 'array', SampleDto::class], $this->types->declaredNames);
+
+        ArrayConverter::instance()->setConversions([DateTime::class => DateTimeConverter::class]);
+        $this->types->addType($type = new DtoPropertyType(DateTime::class, false));
+
+        $this->assertSame($type, $this->types->all[4]);
+        $this->assertTrue($this->types->includeNull);
+        $this->assertTrue($this->types->includeArray);
+        $this->assertTrue($this->types->includeBool);
+        $this->assertTrue($this->types->expectCollection);
+        $this->assertSame(SampleDto::class, $this->types->expectedDto);
+        $this->assertInstanceOf(DateTimeConverter::class, $this->types->expectedConverter);
+        $this->assertSame('bool', $this->types->expectedPrimitive);
+        $this->assertSame(['bool[]', 'null', 'array', SampleDto::class, DateTime::class], $this->types->declaredNames);
+        ArrayConverter::instance()->setConversions([]);
     }
 
     /**
