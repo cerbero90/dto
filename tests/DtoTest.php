@@ -520,6 +520,44 @@ class DtoTest extends TestCase
     /**
      * @test
      */
+    public function can_temporarily_mutate_when_immutable()
+    {
+        $dto1 = PartialDto::make(['name' => 'foo']);
+
+        $this->assertSame(0, $dto1->getFlags() & MUTABLE);
+        $this->assertSame(['name' => 'foo'], $dto1->toArray());
+
+        $dto2 = $dto1->mutate(function ($dto) {
+            $dto->nullable = 123;
+        });
+
+        $this->assertSame($dto1, $dto2);
+        $this->assertSame(0, $dto2->getFlags() & MUTABLE);
+        $this->assertSame(['name' => 'foo', 'nullable' => 123], $dto1->toArray());
+    }
+
+    /**
+     * @test
+     */
+    public function can_temporarily_mutate_when_mutable()
+    {
+        $dto1 = PartialDto::make(['name' => 'foo'], MUTABLE);
+
+        $this->assertSame(MUTABLE, $dto1->getFlags() & MUTABLE);
+        $this->assertSame(['name' => 'foo'], $dto1->toArray());
+
+        $dto2 = $dto1->mutate(function ($dto) {
+            $dto->nullable = 123;
+        });
+
+        $this->assertSame($dto1, $dto2);
+        $this->assertSame(MUTABLE, $dto2->getFlags() & MUTABLE);
+        $this->assertSame(['name' => 'foo', 'nullable' => 123], $dto1->toArray());
+    }
+
+    /**
+     * @test
+     */
     public function can_be_converted_into_array()
     {
         $data = [
