@@ -2,6 +2,8 @@
 
 namespace Cerbero\Dto\Traits;
 
+use Cerbero\Dto\DtoFlagsHandler;
+
 use const Cerbero\Dto\ARRAY_DEFAULT_TO_EMPTY_ARRAY;
 use const Cerbero\Dto\BOOL_DEFAULT_TO_FALSE;
 use const Cerbero\Dto\NONE;
@@ -45,6 +47,19 @@ trait HasFlags
     public function getFlags(): int
     {
         return $this->flags;
+    }
+
+    /**
+     * Retrieve the merged flags
+     *
+     * @param int $initialFlags
+     * @param int $flagsToMerge
+     * @return int
+     * @throws \Cerbero\Dto\Exceptions\IncompatibleDtoFlagsException
+     */
+    protected function mergeFlags(int $initialFlags, int $flagsToMerge): int
+    {
+        return (new DtoFlagsHandler())->merge($initialFlags, $flagsToMerge);
     }
 
     /**

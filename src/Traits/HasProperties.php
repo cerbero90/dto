@@ -2,6 +2,7 @@
 
 namespace Cerbero\Dto\Traits;
 
+use Cerbero\Dto\DtoPropertiesMapper;
 use Cerbero\Dto\DtoProperty;
 use Cerbero\Dto\Exceptions\UnknownDtoPropertyException;
 
@@ -114,6 +115,22 @@ trait HasProperties
         }
 
         $this->propertiesMap = $this->mapData($data);
+    }
+
+    /**
+     * Retrieve the DTO mapped properties for the given data
+     *
+     * @param array $data
+     * @return array
+     * @throws \Cerbero\Dto\Exceptions\DtoNotFoundException
+     * @throws \Cerbero\Dto\Exceptions\InvalidDocCommentException
+     * @throws \Cerbero\Dto\Exceptions\MissingValueException
+     * @throws \Cerbero\Dto\Exceptions\UnexpectedValueException
+     * @throws UnknownDtoPropertyException
+     */
+    protected function mapData(array $data): array
+    {
+        return DtoPropertiesMapper::for(static::class)->map($data, $this->getFlags());
     }
 
     /**
