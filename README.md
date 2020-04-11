@@ -30,13 +30,14 @@ composer require cerbero/dto
    * [IGNORE_UNKNOWN_PROPERTIES](#ignore_unknown_properties)
    * [MUTABLE](#mutable)
    * [PARTIAL](#partial)
+   * [CAST_PRIMITIVES](#cast_primitives)
    * [NULLABLE](#nullable)
    * [NOT_NULLABLE](#not_nullable)
    * [NULLABLE_DEFAULT_TO_NULL](#nullable_default_to_null)
    * [BOOL_DEFAULT_TO_FALSE](#bool_default_to_false)
    * [ARRAY_DEFAULT_TO_EMPTY_ARRAY](#array_default_to_empty_array)
 * [Default flags](#default-flags)
-* [Retrieve flags](#retrieve-flags)
+* [Interact with flags](#interact-with-flags)
 * [Manipulate properties](#manipulate-properties)
 * [Interact with properties](#interact-with-properties)
 * [Convert into array](#convert-into-array)
@@ -63,6 +64,8 @@ $dto = SampleDto::make($data, PARTIAL);
 ```
 
 In the example above, `$data` is an array containing the properties declared in the DTO and `PARTIAL` is a flag that let the DTO be instantiated even though it doesn't have all its properties set (we will see flags in more detail later).
+
+Keys in the array `$data` can be either snake case or camel case, the proper case is automatically detected to match DTO properties.
 
 
 ### Declare properties
@@ -184,6 +187,10 @@ The flag `Cerbero\Dto\MUTABLE` lets a DTO override its property values without c
 
 The flag `Cerbero\Dto\PARTIAL` lets a DTO be instantiated without some properties. If not provided, a `Cerbero\Dto\Exceptions\MissingValueException` is thrown when properties are missing or when unsetting a property.
 
+#### CAST_PRIMITIVES
+
+The flag `Cerbero\Dto\CAST_PRIMITIVES` lets a DTO cast property values if they don't match the expected primitive type. If not provided, a `Cerbero\Dto\Exceptions\UnexpectedValueException` is thrown when trying to set a value with a wrong primitive type.
+
 #### NULLABLE
 
 The flag `Cerbero\Dto\NULLABLE` lets all DTO properties accept NULL as their own value.
@@ -214,6 +221,7 @@ use Cerbero\Dto\Dto;
 
 use const Cerbero\Dto\PARTIAL;
 use const Cerbero\Dto\IGNORE_UNKNOWN_PROPERTIES;
+use const Cerbero\Dto\MUTABLE;
 
 /**
  * A sample user DTO.
@@ -229,12 +237,12 @@ class UserDto extends Dto
 $user = UserDto::make($data, MUTABLE);
 ```
 
-Default flags are combined with the flags passed during the DTO creation, so in the code above `$user` will have the following flags set: `PARTIAL`, `IGNORE_UNKNOWN_PROPERTIES` and `MUTABLE`.
+Default flags are combined with the flags passed during the DTO creation, which means that in the code above `$user` has the following flags set: `PARTIAL`, `IGNORE_UNKNOWN_PROPERTIES` and `MUTABLE`.
 
 
-### Retrieve flags
+### Interact with flags
 
-Default flags in a DTO can be retrieved by calling the static method `getDefaultFlags()`. Flags of a DTO instance can be read via `getFlags()` instead:
+Default flags in a DTO can be retrieved by calling the static method `getDefaultFlags()`, whilst flags belonging to a DTO instance can be read via `getFlags()`:
 
 ```php
 // PARTIAL | IGNORE_UNKNOWN_PROPERTIES
@@ -244,11 +252,33 @@ UserDto::getDefaultFlags();
 $user->getFlags();
 ```
 
-This can be useful for example to check whether a DTO has a given flag set:
+To determine whether a DTO has one or more flag set, we can call `hasFlags()`:
 
 ```php
-$isMutable = ($user->getFlags() & MUTABLE) == MUTABLE;
+$user->hasFlags(PARTIAL); // true
+$user->hasFlags(PARTIAL | MUTABLE); // true
+$user->hasFlags(PARTIAL | NULLABLE); // false
 ```
+
+DTO flags can be set again by calling the method `setFlags()`. If the DTO is mutable the flags are set against the current instance, otherwise a new instance of the DTO is created with the given flags:
+
+```php
+$user = $user->setFlags(PARTIAL | NULLABLE);
+```
+
+In case we want to add one or more flags to the already set ones, we can call `addFlags()`. If the DTO is mutable the flags are added to the current instance, otherwise they are added to a new instance:
+
+```php
+$user = $user->addFlags(NOT_NULLABLE | CAST_PRIMITIVES);
+```
+
+Finally to remove flags, we can call `removeFlags()`. If the DTO is mutable the flags are removed from the current instance, otherwise they are removed from a new instance:
+
+```php
+$user = $user->removeFlags(IGNORE_UNKNOWN_PROPERTIES | MUTABLE);
+```
+
+Please note that when flags are added, removed or set and affect DTO values, properties are re-mapped to apply the effects of the new flags.
 
 
 ### Manipulate properties
@@ -297,6 +327,14 @@ The `only()` method has also an opposite method called `except` that keeps all t
 
 ```php
 $result = $user->except(['name', 'address'], NULLABLE);
+```
+
+Sometimes we may need to quickly alter the data of an immutable DTO. In order to do that while preserving the immutability of the DTO after the altering process, we can call the `mutate()` method:
+
+```php
+$user->mutate(function (UserData $user) {
+    $user->name = 'Jack';
+});
 ```
 
 
@@ -380,6 +418,14 @@ $user->toArray(); // ['birthday' => '01/01/2000']
 
 Please note that conversions registered in `ArrayConverter` will apply to all DTOs, whenever they are turned into arrays. In order to transform values only for a specific DTO, read below about the `Listener` class.
 
+Singular conversions can also be added or removed with the methods `addConversion()` and `removeConversion()`:
+
+```php
+ArrayConverter::instance()->addConversion(DateTime::class, DateTimeConverter::class);
+
+ArrayConverter::instance()->removeConversion(DateTime::class);
+```
+
 
 ### Listen to events
 
@@ -413,6 +459,14 @@ $user->something; // random integer
 In the example above, `UserDtoListener` listens every time a `UserDto` property is set or accessed and calls the related method if existing. The convention behind listeners method names is concatenating the event (`set` or `get`) to the listened property name in camel case, e.g. `setName` or `getIsAdmin`.
 
 Values returned by listener methods override the actual property values. Listeners are not only meant to alter values but also to run arbitrary logic when a DTO property is read or set.
+
+Singular listeners can also be added or removed with the methods `addListener()` and `removeListener()`:
+
+```php
+Listener::instance()->addListener(UserDto::class, UserDtoListener::class);
+
+Listener::instance()->removeListener(UserDto::class);
+```
 
 
 ### Convert into string
