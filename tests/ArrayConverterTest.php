@@ -58,6 +58,26 @@ class ArrayConverterTest extends TestCase
     /**
      * @test
      */
+    public function adds_and_removes_conversions()
+    {
+        $converter = ArrayConverter::instance();
+
+        $this->assertEmpty($converter->getConversions());
+
+        $converter = $converter->addConversion('foo', 'bar');
+
+        $this->assertSame(['foo' => 'bar'], $converter->getConversions());
+        $this->assertInstanceOf(ArrayConverter::class, $converter);
+
+        $converter = $converter->removeConversion('foo');
+
+        $this->assertEmpty($converter->getConversions());
+        $this->assertInstanceOf(ArrayConverter::class, $converter);
+    }
+
+    /**
+     * @test
+     */
     public function calls_registered_conversions()
     {
         $data = [
