@@ -20,7 +20,7 @@ class Listener
      *
      * @var array
      */
-    protected $listenersMap;
+    protected $listenersMap = [];
 
     /**
      * The cached DTO listeners.
@@ -58,6 +58,43 @@ class Listener
         $this->listenersMap = $listenersMap;
 
         return $this;
+    }
+
+    /**
+     * Add a listener for the given DTO
+     *
+     * @param string $dtoClass
+     * @param string $listener
+     * @return self
+     */
+    public function addListener(string $dtoClass, string $listener): self
+    {
+        $this->listenersMap[$dtoClass] = $listener;
+
+        return $this;
+    }
+
+    /**
+     * Remove the listener of the given DTO
+     *
+     * @param string $dtoClass
+     * @return self
+     */
+    public function removeListener(string $dtoClass): self
+    {
+        unset($this->listenersMap[$dtoClass]);
+
+        return $this;
+    }
+
+    /**
+     * Retrieve the listeners map
+     *
+     * @return array
+     */
+    public function getListeners(): array
+    {
+        return $this->listenersMap;
     }
 
     /**

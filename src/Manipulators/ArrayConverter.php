@@ -80,6 +80,33 @@ class ArrayConverter
     }
 
     /**
+     * Add a conversion
+     *
+     * @param string $class
+     * @param string $converter
+     * @return self
+     */
+    public function addConversion(string $class, string $converter): self
+    {
+        $this->conversions[$class] = $converter;
+
+        return $this;
+    }
+
+    /**
+     * Remove a conversion
+     *
+     * @param string $class
+     * @return self
+     */
+    public function removeConversion(string $class): self
+    {
+        unset($this->conversions[$class]);
+
+        return $this;
+    }
+
+    /**
      * Convert the given item into an array
      *
      * @param mixed $item

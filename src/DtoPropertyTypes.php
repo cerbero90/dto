@@ -2,6 +2,9 @@
 
 namespace Cerbero\Dto;
 
+use Cerbero\Dto\Manipulators\ArrayConverter;
+use Cerbero\Dto\Manipulators\ValueConverter;
+
 /**
  * The wrapper for DTO property types.
  *
@@ -10,8 +13,10 @@ namespace Cerbero\Dto;
  * @property bool $includeArray
  * @property bool $includeBool
  * @property bool $expectCollection
- * @property string $expectedDto
- * @property array $declaredNames
+ * @property string|null $expectedDto
+ * @property ValueConverter|null $expectedConverter
+ * @property string|null $expectedPrimitive
+ * @property string[] $declaredNames
  */
 class DtoPropertyTypes
 {
@@ -58,6 +63,20 @@ class DtoPropertyTypes
     protected $expectedDto;
 
     /**
+     * The expected value converter.
+     *
+     * @var ValueConverter
+     */
+    protected $expectedConverter;
+
+    /**
+     * The expected primitive type.
+     *
+     * @var string
+     */
+    protected $expectedPrimitive;
+
+    /**
      * The types name with the [] suffix if collections.
      *
      * @var array
@@ -78,6 +97,8 @@ class DtoPropertyTypes
         $this->includeBool = $this->includeBool || $type->name() == 'bool';
         $this->expectCollection = $this->expectCollection || $type->isCollection();
         $this->expectedDto = $this->getExpectedDto($type);
+        $this->expectedConverter = $this->getExpectedConverter($type);
+        $this->expectedPrimitive = $this->getExpectedPrimitive($type);
         $this->declaredNames[] = $type->declaredName();
 
         return $this;
@@ -96,6 +117,49 @@ class DtoPropertyTypes
         }
 
         return $type->isDto() ? $type->name() : null;
+    }
+
+    /**
+     * Retrieve the expected value converter
+     *
+     * @param DtoPropertyType $type
+     * @return ValueConverter|null
+     */
+    protected function getExpectedConverter(DtoPropertyType $type): ?ValueConverter
+    {
+        if ($this->expectedConverter) {
+            return $this->expectedConverter;
+        }
+
+        return ArrayConverter::instance()->getConverterByClass($type->name());
+    }
+
+    /**
+     * Retrieve the expected primitive type
+     *
+     * @param DtoPropertyType $type
+     * @return string|null
+     */
+    protected function getExpectedPrimitive(DtoPropertyType $type): ?string
+    {
+        if ($this->expectedPrimitive) {
+            return $this->expectedPrimitive;
+        }
+
+        $typeName = $type->name();
+        $casts = [
+            'int' => true,
+            'integer' => true,
+            'bool' => true,
+            'boolean' => true,
+            'float' => true,
+            'double' => true,
+            'string' => true,
+            'array' => true,
+            'object' => true,
+        ];
+
+        return isset($casts[$typeName]) ? $typeName : null;
     }
 
     /**

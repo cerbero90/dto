@@ -2,7 +2,6 @@
 
 namespace Cerbero\Dto;
 
-use Cerbero\Dto\Manipulators\ArrayConverter;
 use Cerbero\Dto\Exceptions\UnexpectedValueException;
 
 /**
@@ -40,6 +39,13 @@ class DtoProperty
     protected $flags;
 
     /**
+     * The property value processor.
+     *
+     * @var DtoPropertyValueProcessor
+     */
+    protected $valueProcessor;
+
+    /**
      * The processed value.
      *
      * @var mixed
@@ -67,6 +73,7 @@ class DtoProperty
         $this->rawValue = $rawValue;
         $this->types = $types;
         $this->flags = $flags;
+        $this->valueProcessor = new DtoPropertyValueProcessor($this);
     }
 
     /**
@@ -94,16 +101,14 @@ class DtoProperty
      */
     public function validate(): self
     {
-        if ($this->rawValue === null) {
-            if ($this->isNullable()) {
+        $canBeDto = $this->rawValue instanceof Dto || is_array($this->rawValue);
+
+        switch (true) {
+            case $this->types->expectedDto && $canBeDto:
+            case $this->rawValue === null && $this->isNullable():
+            case $this->types->expectCollection && is_iterable($this->rawValue):
+            case $this->types->match($this->value()):
                 return $this;
-            }
-
-            throw new UnexpectedValueException($this);
-        }
-
-        if ($this->types->match($this->value())) {
-            return $this;
         }
 
         throw new UnexpectedValueException($this);
@@ -130,54 +135,12 @@ class DtoProperty
      */
     public function value()
     {
-        if ($this->valueIsProcessed) {
-            return $this->processedValue;
+        if (!$this->valueIsProcessed) {
+            $this->processedValue = $this->valueProcessor->process();
+            $this->valueIsProcessed = true;
         }
-
-        $this->processedValue = $this->processRawValue();
-        $this->valueIsProcessed = true;
 
         return $this->processedValue;
-    }
-
-    /**
-     * Retrieve the processed raw value
-     *
-     * @return mixed
-     */
-    protected function processRawValue()
-    {
-        if ($this->rawValue === null) {
-            return null;
-        }
-
-        foreach ($this->types->all as $type) {
-            if (!class_exists($class = $type->name())) {
-                continue;
-            } elseif ($converter = ArrayConverter::instance()->getConverterByClass($class)) {
-                return $converter->toDto($this->rawValue);
-            }
-        }
-
-        return $this->types->expectedDto ? $this->castRawValueIntoDto() : $this->rawValue;
-    }
-
-    /**
-     * Retrieve the raw value casted into a DTO or a collection of DTOs
-     *
-     * @return Dto|Dto[]|null
-     */
-    protected function castRawValueIntoDto()
-    {
-        $dto = $this->types->expectedDto;
-
-        if (!$this->types->expectCollection) {
-            return is_a($this->rawValue, $dto) ? $this->rawValue : $dto::make($this->rawValue, $this->flags);
-        }
-
-        return array_map(function ($data) use ($dto) {
-            return is_a($data, $dto) ? $data : $dto::make($data, $this->flags);
-        }, $this->rawValue);
     }
 
     /**
@@ -244,5 +207,6 @@ class DtoProperty
     public function __clone()
     {
         $this->types = clone $this->types;
+        $this->valueProcessor = new DtoPropertyValueProcessor($this);
     }
 }

@@ -49,6 +49,39 @@ class DtoPropertyTest extends TestCase
     /**
      * @test
      */
+    public function validation_fails_if_property_is_supposed_to_be_a_dto_but_cannot()
+    {
+        $dto = NoPropertiesDto::class;
+        $error = "Invalid type: expected 'foo' to be of type '{$dto}'. Got `null` (NULL) instead";
+
+        $this->expectException(UnexpectedValueException::class);
+        $this->expectExceptionMessage($error);
+
+        $types = new DtoPropertyTypes;
+        $types->addType(new DtoPropertyType($dto, false));
+
+        DtoProperty::create('foo', null, $types, NONE);
+    }
+
+    /**
+     * @test
+     */
+    public function validation_fails_if_property_is_supposed_to_be_a_collection_but_cannot()
+    {
+        $error = "Invalid type: expected 'foo' to be of type 'bool[]'. Got `null` (NULL) instead";
+
+        $this->expectException(UnexpectedValueException::class);
+        $this->expectExceptionMessage($error);
+
+        $types = new DtoPropertyTypes;
+        $types->addType(new DtoPropertyType('bool', true));
+
+        DtoProperty::create('foo', null, $types, NONE);
+    }
+
+    /**
+     * @test
+     */
     public function validation_succeeds_when_setting_property_to_null_on_nullable_dto()
     {
         $types = new DtoPropertyTypes;
@@ -68,6 +101,45 @@ class DtoPropertyTest extends TestCase
         $types->addType(new DtoPropertyType('null', false));
 
         $property = DtoProperty::create('foo', null, $types, NONE);
+
+        $this->assertInstanceOf(DtoProperty::class, $property);
+    }
+
+    /**
+     * @test
+     */
+    public function validation_succeeds_when_setting_dto_from_array()
+    {
+        $types = new DtoPropertyTypes;
+        $types->addType(new DtoPropertyType(NoPropertiesDto::class, false));
+
+        $property = DtoProperty::create('foo', [], $types, NONE);
+
+        $this->assertInstanceOf(DtoProperty::class, $property);
+    }
+
+    /**
+     * @test
+     */
+    public function validation_succeeds_when_setting_dto_from_dto()
+    {
+        $types = new DtoPropertyTypes;
+        $types->addType(new DtoPropertyType(NoPropertiesDto::class, false));
+
+        $property = DtoProperty::create('foo', new NoPropertiesDto, $types, NONE);
+
+        $this->assertInstanceOf(DtoProperty::class, $property);
+    }
+
+    /**
+     * @test
+     */
+    public function validation_succeeds_when_setting_a_collection_from_an_iterable()
+    {
+        $types = new DtoPropertyTypes;
+        $types->addType(new DtoPropertyType('bool', true));
+
+        $property = DtoProperty::create('foo', [true], $types, NONE);
 
         $this->assertInstanceOf(DtoProperty::class, $property);
     }

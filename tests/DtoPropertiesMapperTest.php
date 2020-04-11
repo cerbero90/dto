@@ -124,6 +124,24 @@ class DtoPropertiesMapperTest extends TestCase
     /**
      * @test
      */
+    public function gets_property_names()
+    {
+        $names = DtoPropertiesMapper::for(SampleDto::class)->getNames();
+        $expected = [
+            'object',
+            'dtos',
+            'sample',
+            'partial',
+            'name',
+            'enabled',
+        ];
+
+        $this->assertSame($expected, $names);
+    }
+
+    /**
+     * @test
+     */
     public function maps_properties()
     {
         $data = [
