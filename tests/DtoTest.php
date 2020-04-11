@@ -64,6 +64,112 @@ class DtoTest extends TestCase
     /**
      * @test
      */
+    public function determines_whether_flags_are_set()
+    {
+        $dto = PartialDto::make([], MUTABLE);
+
+        $this->assertTrue($dto->hasFlags(PARTIAL));
+        $this->assertTrue($dto->hasFlags(PARTIAL | MUTABLE));
+        $this->assertFalse($dto->hasFlags(PARTIAL | MUTABLE | NULLABLE));
+    }
+
+    /**
+     * @test
+     */
+    public function sets_flags_in_same_instance_if_mutable()
+    {
+        $dto1 = PartialDto::make([], MUTABLE);
+        $dto2 = $dto1->setFlags(PARTIAL | NOT_NULLABLE);
+
+        $this->assertSame($dto1, $dto2);
+        $this->assertSame(PARTIAL | NOT_NULLABLE, $dto1->getFlags());
+        $this->assertSame(PARTIAL | NOT_NULLABLE, $dto2->getFlags());
+    }
+
+    /**
+     * @test
+     */
+    public function sets_flags_in_new_instance_if_immutable()
+    {
+        $dto1 = PartialDto::make([]);
+        $dto2 = $dto1->setFlags(PARTIAL | NOT_NULLABLE);
+
+        $this->assertNotSame($dto1, $dto2);
+        $this->assertSame(PARTIAL, $dto1->getFlags());
+        $this->assertSame(PARTIAL | NOT_NULLABLE, $dto2->getFlags());
+    }
+
+    /**
+     * @test
+     */
+    public function affects_dto_values_when_setting_flags()
+    {
+        $dto1 = PartialDto::make([]);
+        $dto2 = $dto1->setFlags(NULLABLE_DEFAULT_TO_NULL);
+
+        $this->assertNotSame($dto1, $dto2);
+        $this->assertSame(PARTIAL, $dto1->getFlags());
+        $this->assertSame(PARTIAL | NULLABLE_DEFAULT_TO_NULL, $dto2->getFlags());
+        $this->assertSame([], $dto1->getPropertyNames());
+        $this->assertSame(['nullable'], $dto2->getPropertyNames());
+    }
+
+    /**
+     * @test
+     */
+    public function adds_flags_in_same_instance_if_mutable()
+    {
+        $dto1 = PartialDto::make([], MUTABLE | NULLABLE);
+        $dto2 = $dto1->addFlags(PARTIAL | NOT_NULLABLE);
+
+        $this->assertSame($dto1, $dto2);
+        $this->assertSame(PARTIAL | MUTABLE | NOT_NULLABLE, $dto1->getFlags());
+        $this->assertSame(PARTIAL | MUTABLE | NOT_NULLABLE, $dto2->getFlags());
+    }
+
+    /**
+     * @test
+     */
+    public function adds_flags_in_new_instance_if_immutable()
+    {
+        $dto1 = PartialDto::make([], NULLABLE);
+        $dto2 = $dto1->addFlags(PARTIAL | NOT_NULLABLE);
+
+        $this->assertNotSame($dto1, $dto2);
+        $this->assertSame(PARTIAL | NULLABLE, $dto1->getFlags());
+        $this->assertSame(PARTIAL | NOT_NULLABLE, $dto2->getFlags());
+    }
+
+    /**
+     * @test
+     */
+    public function removes_flags_in_same_instance_if_mutable()
+    {
+        $dto1 = PartialDto::make([], MUTABLE);
+        $dto2 = $dto1->removeFlags(MUTABLE | NOT_NULLABLE);
+
+        $this->assertSame($dto1, $dto2);
+        $this->assertSame(PARTIAL, $dto1->getFlags());
+        $this->assertSame(PARTIAL, $dto2->getFlags());
+    }
+
+    /**
+     * @test
+     */
+    public function removes_flags_in_new_instance_if_immutable()
+    {
+        $dto1 = PartialDto::make([], NOT_NULLABLE);
+        $dto2 = $dto1->removeFlags(PARTIAL | NOT_NULLABLE);
+
+        $this->assertNotSame($dto1, $dto2);
+        $this->assertSame(PARTIAL | NOT_NULLABLE, $dto1->getFlags());
+        // PARTIAL stays even if it was removed as it is a default flag in PartialDto
+        $this->assertSame(PARTIAL, $dto2->getFlags());
+    }
+
+    /**
+     * @test
+     */
     public function returns_false_if_property_is_missing()
     {
         $dto = new PartialDto(['name' => 'foo']);
