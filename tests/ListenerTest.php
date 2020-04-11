@@ -82,4 +82,24 @@ class ListenerTest extends TestCase
 
         $this->assertSame('foo', $value);
     }
+
+    /**
+     * @test
+     */
+    public function gets_adds_and_removes_listeners()
+    {
+        $listener = Listener::instance();
+
+        $this->assertEmpty($listener->getListeners());
+
+        $listener = $listener->addListener('foo', 'bar');
+
+        $this->assertSame(['foo' => 'bar'], $listener->getListeners());
+        $this->assertInstanceOf(Listener::class, $listener);
+
+        $listener = $listener->removeListener('foo');
+
+        $this->assertEmpty($listener->getListeners());
+        $this->assertInstanceOf(Listener::class, $listener);
+    }
 }
