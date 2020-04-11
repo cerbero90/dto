@@ -79,4 +79,24 @@ trait ManipulatesData
 
         return $this->only($propertiesToKeep, $flags);
     }
+
+    /**
+     * Make the DTO mutable while calling the given callback
+     *
+     * @param callable $callback
+     * @return self
+     */
+    public function mutate(callable $callback): self
+    {
+        $wasMutable = $this->getFlags() & MUTABLE;
+        $this->flags |= MUTABLE;
+
+        $callback($this);
+
+        if (!$wasMutable) {
+            $this->flags ^= MUTABLE;
+        }
+
+        return $this;
+    }
 }

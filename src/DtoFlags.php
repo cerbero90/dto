@@ -69,3 +69,10 @@ const NULLABLE = 1 << 6;
  * @var int
  */
 const NOT_NULLABLE = 1 << 7;
+
+/**
+ * Cast primitives into their expected type.
+ *
+ * @var int
+ */
+const CAST_PRIMITIVES = 1 << 8;

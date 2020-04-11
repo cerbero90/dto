@@ -115,6 +115,47 @@ class DtoPropertiesMapper
     }
 
     /**
+     * Retrieve the mapped property names
+     *
+     * @return array
+     * @throws InvalidDocCommentException
+     */
+    public function getNames(): array
+    {
+        $rawProperties = $this->cacheRawProperties();
+
+        return array_keys($rawProperties);
+    }
+
+    /**
+     * Retrieve and cache the raw properties to map
+     *
+     * @return array
+     * @throws InvalidDocCommentException
+     */
+    protected function cacheRawProperties(): array
+    {
+        if (isset($this->rawProperties)) {
+            return $this->rawProperties;
+        }
+
+        if (false === $docComment = $this->reflection->getDocComment()) {
+            throw new InvalidDocCommentException($this->dtoClass);
+        }
+
+        if (preg_match_all(static::RE_PROPERTY, $docComment, $matches, PREG_SET_ORDER) === 0) {
+            return $this->rawProperties = [];
+        }
+
+        foreach ($matches as $match) {
+            [, $rawTypes, $name] = $match;
+            $this->rawProperties[$name] = $rawTypes;
+        }
+
+        return $this->rawProperties;
+    }
+
+    /**
      * Retrieve the mapped DTO properties
      *
      * @param array $data
@@ -153,34 +194,6 @@ class DtoPropertiesMapper
         $this->checkUnknownProperties($data, $flags);
 
         return $this->mappedProperties = $mappedProperties;
-    }
-
-    /**
-     * Retrieve and cache the raw properties to map
-     *
-     * @return array
-     * @throws InvalidDocCommentException
-     */
-    protected function cacheRawProperties(): array
-    {
-        if (isset($this->rawProperties)) {
-            return $this->rawProperties;
-        }
-
-        if (false === $docComment = $this->reflection->getDocComment()) {
-            throw new InvalidDocCommentException($this->dtoClass);
-        }
-
-        if (preg_match_all(static::RE_PROPERTY, $docComment, $matches, PREG_SET_ORDER) === 0) {
-            return $this->rawProperties = [];
-        }
-
-        foreach ($matches as $match) {
-            [, $rawTypes, $name] = $match;
-            $this->rawProperties[$name] = $rawTypes;
-        }
-
-        return $this->rawProperties;
     }
 
     /**
