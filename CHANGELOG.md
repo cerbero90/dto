@@ -4,6 +4,12 @@ All notable changes to `dto` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](http://keepachangelog.com/) principles.
 
+## 1.4.1 - 2020-04-12
+
+### Added
+- Method `getListener()` to ease the listener override
+
+
 ## 1.4.0 - 2020-04-11
 
 ### Added
