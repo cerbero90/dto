@@ -42,7 +42,17 @@ trait HasValues
     {
         $value = $this->getProperty($property)->value();
 
-        return Listener::instance()->getting(static::class, $property, $value);
+        return $this->getListener()->getting(static::class, $property, $value);
+    }
+
+    /**
+     * Retrieve the listener instance
+     *
+     * @return Listener
+     */
+    protected function getListener(): Listener
+    {
+        return Listener::instance();
     }
 
     /**
@@ -59,7 +69,7 @@ trait HasValues
         $dto = ($flags & MUTABLE) ? $this : $this->clone();
 
         try {
-            $value = Listener::instance()->setting(static::class, $property, $value);
+            $value = $this->getListener()->setting(static::class, $property, $value);
             $dto->setPropertyValueOrMap($property, $value);
         } catch (UnknownDtoPropertyException $e) {
             if (!($flags & IGNORE_UNKNOWN_PROPERTIES)) {
