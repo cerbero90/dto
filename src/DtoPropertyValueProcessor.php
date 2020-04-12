@@ -87,7 +87,7 @@ class DtoPropertyValueProcessor
      * @param mixed $value
      * @return Dto
      */
-    protected function castValueIntoDto($value)
+    protected function castValueIntoDto($value): Dto
     {
         $dto = $this->property->getTypes()->expectedDto;
 
