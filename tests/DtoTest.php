@@ -975,6 +975,22 @@ class DtoTest extends TestCase
     /**
      * @test
      */
+    public function default_values_can_be_overridden()
+    {
+        $expected = [
+            'name' => 'foo',
+            'count' => 1,
+            'time' => null,
+        ];
+
+        $dto = DtoWithDefaults::make(['name' => 'foo', 'count' => 1]);
+
+        $this->assertSame($expected, $dto->toArray());
+    }
+
+    /**
+     * @test
+     */
     public function only_property_names_and_values_are_shown_on_debug()
     {
         $dto = PartialDto::make(['name' => 'foo']);
