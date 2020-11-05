@@ -29,50 +29,22 @@ const IGNORE_UNKNOWN_PROPERTIES = 1;
 const MUTABLE = 1 << 1;
 
 /**
- * Set DTO properties supposed to be an array to empty arrays by default.
- *
- * @var int
- */
-const ARRAY_DEFAULT_TO_EMPTY_ARRAY = 1 << 2;
-
-/**
- * Set nullable DTO properties to null by default.
- *
- * @var int
- */
-const NULLABLE_DEFAULT_TO_NULL = 1 << 3;
-
-/**
- * Set boolean DTO properties to false by default.
- *
- * @var int
- */
-const BOOL_DEFAULT_TO_FALSE = 1 << 4;
-
-/**
  * Set only the properties provided and ignore missing data.
  *
  * @var int
  */
-const PARTIAL = 1 << 5;
-
-/**
- * Make all DTO properties nullable.
- *
- * @var int
- */
-const NULLABLE = 1 << 6;
-
-/**
- * Make all DTO properties required.
- *
- * @var int
- */
-const NOT_NULLABLE = 1 << 7;
+const PARTIAL = 1 << 2;
 
 /**
  * Cast primitives into their expected type.
  *
  * @var int
  */
-const CAST_PRIMITIVES = 1 << 8;
+const CAST_PRIMITIVES = 1 << 3;
+
+/**
+ * Preserve camel case properties when turning DTO into array.
+ *
+ * @var int
+ */
+const CAMEL_CASE_ARRAY = 1 << 4;

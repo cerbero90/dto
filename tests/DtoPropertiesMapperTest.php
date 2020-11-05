@@ -202,64 +202,6 @@ class DtoPropertiesMapperTest extends TestCase
     /**
      * @test
      */
-    public function sets_defaults_depending_on_flags()
-    {
-        $data = [
-            'sample' => new SampleClass,
-            'name' => 'foo',
-            'partial' => new PartialDto,
-        ];
-
-        $defaultToFlags = ARRAY_DEFAULT_TO_EMPTY_ARRAY | NULLABLE_DEFAULT_TO_NULL | BOOL_DEFAULT_TO_FALSE;
-        $map = DtoPropertiesMapper::for(SampleDto::class)->map($data, $defaultToFlags);
-
-        $this->assertCount(6, $map);
-
-        foreach ($map as $name => $propery) {
-            $this->assertInstanceOf(DtoProperty::class, $propery);
-            $this->assertSame($name, $propery->getName());
-            $this->assertSame($defaultToFlags, $propery->getFlags());
-        }
-
-        $types = $map['object']->getTypes();
-        $this->assertInstanceOf(DtoPropertyTypes::class, $types);
-        $this->assertCount(2, $types->all);
-        $this->assertSame('stdClass', $types->all[0]->name());
-        $this->assertFalse($types->all[0]->isCollection());
-        $this->assertSame('null', $types->all[1]->name());
-        $this->assertFalse($types->all[1]->isCollection());
-        $this->assertNull($map['object']->getRawValue());
-
-        $types = $map['dtos']->getTypes();
-        $this->assertInstanceOf(DtoPropertyTypes::class, $types);
-        $this->assertCount(1, $types->all);
-        $this->assertSame('Cerbero\Dto\Dtos\NoPropertiesDto', $types->all[0]->name());
-        $this->assertTrue($types->all[0]->isCollection());
-        $this->assertEmpty($map['dtos']->getRawValue());
-
-        $types = $map['sample']->getTypes();
-        $this->assertInstanceOf(DtoPropertyTypes::class, $types);
-        $this->assertCount(1, $types->all);
-        $this->assertSame('Cerbero\Dto\SampleClass', $types->all[0]->name());
-        $this->assertFalse($types->all[0]->isCollection());
-
-        $types = $map['name']->getTypes();
-        $this->assertInstanceOf(DtoPropertyTypes::class, $types);
-        $this->assertCount(1, $types->all);
-        $this->assertSame('string', $types->all[0]->name());
-        $this->assertFalse($types->all[0]->isCollection());
-
-        $types = $map['enabled']->getTypes();
-        $this->assertInstanceOf(DtoPropertyTypes::class, $types);
-        $this->assertCount(1, $types->all);
-        $this->assertSame('bool', $types->all[0]->name());
-        $this->assertFalse($types->all[0]->isCollection());
-        $this->assertFalse($map['enabled']->getRawValue());
-    }
-
-    /**
-     * @test
-     */
     public function keep_map_but_update_values_and_flags_on_dto_remap()
     {
         $data = [
@@ -274,20 +216,22 @@ class DtoPropertiesMapperTest extends TestCase
         DtoPropertiesMapper::for(SampleDto::class)->map($data, NONE);
 
         $data = [
+            'object' => null,
+            'dtos' => [],
             'sample' => new SampleClass,
-            'name' => 'foo',
             'partial' => new PartialDto,
+            'name' => 'foo',
+            'enabled' => false,
         ];
 
-        $defaultToFlags = ARRAY_DEFAULT_TO_EMPTY_ARRAY | NULLABLE_DEFAULT_TO_NULL | BOOL_DEFAULT_TO_FALSE;
-        $map = DtoPropertiesMapper::for(SampleDto::class)->map($data, $defaultToFlags);
+        $map = DtoPropertiesMapper::for(SampleDto::class)->map($data, IGNORE_UNKNOWN_PROPERTIES);
 
         $this->assertCount(6, $map);
 
         foreach ($map as $name => $propery) {
             $this->assertInstanceOf(DtoProperty::class, $propery);
             $this->assertSame($name, $propery->getName());
-            $this->assertSame($defaultToFlags, $propery->getFlags());
+            $this->assertSame(IGNORE_UNKNOWN_PROPERTIES, $propery->getFlags());
         }
 
         $types = $map['object']->getTypes();

@@ -39,8 +39,6 @@ class DtoPropertyTypesTest extends TestCase
 
         $this->assertSame($type, $this->types->all[0]);
         $this->assertFalse($this->types->includeNull);
-        $this->assertFalse($this->types->includeArray);
-        $this->assertTrue($this->types->includeBool);
         $this->assertTrue($this->types->expectCollection);
         $this->assertNull($this->types->expectedDto);
         $this->assertNull($this->types->expectedConverter);
@@ -51,8 +49,6 @@ class DtoPropertyTypesTest extends TestCase
 
         $this->assertSame($type, $this->types->all[1]);
         $this->assertTrue($this->types->includeNull);
-        $this->assertFalse($this->types->includeArray);
-        $this->assertTrue($this->types->includeBool);
         $this->assertTrue($this->types->expectCollection);
         $this->assertNull($this->types->expectedDto);
         $this->assertNull($this->types->expectedConverter);
@@ -63,8 +59,6 @@ class DtoPropertyTypesTest extends TestCase
 
         $this->assertSame($type, $this->types->all[2]);
         $this->assertTrue($this->types->includeNull);
-        $this->assertTrue($this->types->includeArray);
-        $this->assertTrue($this->types->includeBool);
         $this->assertTrue($this->types->expectCollection);
         $this->assertNull($this->types->expectedDto);
         $this->assertNull($this->types->expectedConverter);
@@ -75,8 +69,6 @@ class DtoPropertyTypesTest extends TestCase
 
         $this->assertSame($type, $this->types->all[3]);
         $this->assertTrue($this->types->includeNull);
-        $this->assertTrue($this->types->includeArray);
-        $this->assertTrue($this->types->includeBool);
         $this->assertTrue($this->types->expectCollection);
         $this->assertSame(SampleDto::class, $this->types->expectedDto);
         $this->assertNull($this->types->expectedConverter);
@@ -88,8 +80,6 @@ class DtoPropertyTypesTest extends TestCase
 
         $this->assertSame($type, $this->types->all[4]);
         $this->assertTrue($this->types->includeNull);
-        $this->assertTrue($this->types->includeArray);
-        $this->assertTrue($this->types->includeBool);
         $this->assertTrue($this->types->expectCollection);
         $this->assertSame(SampleDto::class, $this->types->expectedDto);
         $this->assertInstanceOf(DateTimeConverter::class, $this->types->expectedConverter);
@@ -99,8 +89,6 @@ class DtoPropertyTypesTest extends TestCase
         ArrayConverter::instance()->setConversions([]);
 
         $this->assertTrue($this->types->includeNull);
-        $this->assertTrue($this->types->includeArray);
-        $this->assertTrue($this->types->includeBool);
         $this->assertTrue($this->types->expectCollection);
         $this->assertSame(SampleDto::class, $this->types->expectedDto);
         $this->assertInstanceOf(DateTimeConverter::class, $this->types->expectedConverter);

@@ -3,7 +3,7 @@
 namespace Cerbero\Dto;
 
 use Cerbero\Dto\Dtos\CamelCaseDto;
-use Cerbero\Dto\Manipulators\ArrayConverter;
+use Cerbero\Dto\Dtos\DtoWithDefaults;
 use Cerbero\Dto\Dtos\NoPropertiesDto;
 use Cerbero\Dto\Dtos\PartialDto;
 use Cerbero\Dto\Exceptions\ImmutableDtoException;
@@ -70,7 +70,7 @@ class DtoTest extends TestCase
 
         $this->assertTrue($dto->hasFlags(PARTIAL));
         $this->assertTrue($dto->hasFlags(PARTIAL | MUTABLE));
-        $this->assertFalse($dto->hasFlags(PARTIAL | MUTABLE | NULLABLE));
+        $this->assertFalse($dto->hasFlags(PARTIAL | MUTABLE | IGNORE_UNKNOWN_PROPERTIES));
     }
 
     /**
@@ -79,11 +79,11 @@ class DtoTest extends TestCase
     public function sets_flags_in_same_instance_if_mutable()
     {
         $dto1 = PartialDto::make([], MUTABLE);
-        $dto2 = $dto1->setFlags(PARTIAL | NOT_NULLABLE);
+        $dto2 = $dto1->setFlags(PARTIAL | IGNORE_UNKNOWN_PROPERTIES);
 
         $this->assertSame($dto1, $dto2);
-        $this->assertSame(PARTIAL | NOT_NULLABLE, $dto1->getFlags());
-        $this->assertSame(PARTIAL | NOT_NULLABLE, $dto2->getFlags());
+        $this->assertSame(PARTIAL | IGNORE_UNKNOWN_PROPERTIES, $dto1->getFlags());
+        $this->assertSame(PARTIAL | IGNORE_UNKNOWN_PROPERTIES, $dto2->getFlags());
     }
 
     /**
@@ -92,26 +92,11 @@ class DtoTest extends TestCase
     public function sets_flags_in_new_instance_if_immutable()
     {
         $dto1 = PartialDto::make([]);
-        $dto2 = $dto1->setFlags(PARTIAL | NOT_NULLABLE);
+        $dto2 = $dto1->setFlags(PARTIAL | CAST_PRIMITIVES);
 
         $this->assertNotSame($dto1, $dto2);
         $this->assertSame(PARTIAL, $dto1->getFlags());
-        $this->assertSame(PARTIAL | NOT_NULLABLE, $dto2->getFlags());
-    }
-
-    /**
-     * @test
-     */
-    public function affects_dto_values_when_setting_flags()
-    {
-        $dto1 = PartialDto::make([]);
-        $dto2 = $dto1->setFlags(NULLABLE_DEFAULT_TO_NULL);
-
-        $this->assertNotSame($dto1, $dto2);
-        $this->assertSame(PARTIAL, $dto1->getFlags());
-        $this->assertSame(PARTIAL | NULLABLE_DEFAULT_TO_NULL, $dto2->getFlags());
-        $this->assertSame([], $dto1->getPropertyNames());
-        $this->assertSame(['nullable'], $dto2->getPropertyNames());
+        $this->assertSame(PARTIAL | CAST_PRIMITIVES, $dto2->getFlags());
     }
 
     /**
@@ -119,12 +104,12 @@ class DtoTest extends TestCase
      */
     public function adds_flags_in_same_instance_if_mutable()
     {
-        $dto1 = PartialDto::make([], MUTABLE | NULLABLE);
-        $dto2 = $dto1->addFlags(PARTIAL | NOT_NULLABLE);
+        $dto1 = PartialDto::make([], MUTABLE | CAMEL_CASE_ARRAY);
+        $dto2 = $dto1->addFlags(PARTIAL | CAMEL_CASE_ARRAY);
 
         $this->assertSame($dto1, $dto2);
-        $this->assertSame(PARTIAL | MUTABLE | NOT_NULLABLE, $dto1->getFlags());
-        $this->assertSame(PARTIAL | MUTABLE | NOT_NULLABLE, $dto2->getFlags());
+        $this->assertSame(PARTIAL | MUTABLE | CAMEL_CASE_ARRAY, $dto1->getFlags());
+        $this->assertSame(PARTIAL | MUTABLE | CAMEL_CASE_ARRAY, $dto2->getFlags());
     }
 
     /**
@@ -132,12 +117,12 @@ class DtoTest extends TestCase
      */
     public function adds_flags_in_new_instance_if_immutable()
     {
-        $dto1 = PartialDto::make([], NULLABLE);
-        $dto2 = $dto1->addFlags(PARTIAL | NOT_NULLABLE);
+        $dto1 = PartialDto::make([], CAST_PRIMITIVES);
+        $dto2 = $dto1->addFlags(PARTIAL | IGNORE_UNKNOWN_PROPERTIES);
 
         $this->assertNotSame($dto1, $dto2);
-        $this->assertSame(PARTIAL | NULLABLE, $dto1->getFlags());
-        $this->assertSame(PARTIAL | NOT_NULLABLE, $dto2->getFlags());
+        $this->assertSame(PARTIAL | CAST_PRIMITIVES, $dto1->getFlags());
+        $this->assertSame(PARTIAL | CAST_PRIMITIVES | IGNORE_UNKNOWN_PROPERTIES, $dto2->getFlags());
     }
 
     /**
@@ -146,7 +131,7 @@ class DtoTest extends TestCase
     public function removes_flags_in_same_instance_if_mutable()
     {
         $dto1 = PartialDto::make([], MUTABLE);
-        $dto2 = $dto1->removeFlags(MUTABLE | NOT_NULLABLE);
+        $dto2 = $dto1->removeFlags(MUTABLE | CAST_PRIMITIVES);
 
         $this->assertSame($dto1, $dto2);
         $this->assertSame(PARTIAL, $dto1->getFlags());
@@ -158,11 +143,11 @@ class DtoTest extends TestCase
      */
     public function removes_flags_in_new_instance_if_immutable()
     {
-        $dto1 = PartialDto::make([], NOT_NULLABLE);
-        $dto2 = $dto1->removeFlags(PARTIAL | NOT_NULLABLE);
+        $dto1 = PartialDto::make([], IGNORE_UNKNOWN_PROPERTIES);
+        $dto2 = $dto1->removeFlags(PARTIAL | IGNORE_UNKNOWN_PROPERTIES);
 
         $this->assertNotSame($dto1, $dto2);
-        $this->assertSame(PARTIAL | NOT_NULLABLE, $dto1->getFlags());
+        $this->assertSame(PARTIAL | IGNORE_UNKNOWN_PROPERTIES, $dto1->getFlags());
         // PARTIAL stays even if it was removed as it is a default flag in PartialDto
         $this->assertSame(PARTIAL, $dto2->getFlags());
     }
@@ -482,7 +467,7 @@ class DtoTest extends TestCase
             ],
         ];
 
-        $dto2 = $dto1->merge($dataToMerge, BOOL_DEFAULT_TO_FALSE);
+        $dto2 = $dto1->merge($dataToMerge, CAST_PRIMITIVES);
 
         $this->assertNotSame($dto1, $dto2);
         $this->assertSame('foo', $dto1->name);
@@ -491,7 +476,7 @@ class DtoTest extends TestCase
         $this->assertTrue($dto2->hasProperty('sample'));
         $this->assertTrue($dto2->sample->enabled);
         $this->assertSame(PARTIAL, $dto1->getFlags());
-        $this->assertSame(PARTIAL | BOOL_DEFAULT_TO_FALSE, $dto2->getFlags());
+        $this->assertSame(PARTIAL | CAST_PRIMITIVES, $dto2->getFlags());
     }
 
     /**
@@ -507,7 +492,7 @@ class DtoTest extends TestCase
             ],
         ]);
 
-        $dto2 = $dto1->merge($dataToMerge, ARRAY_DEFAULT_TO_EMPTY_ARRAY);
+        $dto2 = $dto1->merge($dataToMerge, CAMEL_CASE_ARRAY);
 
         $this->assertNotSame($dto1, $dto2);
         $this->assertSame('foo', $dto1->name);
@@ -516,7 +501,7 @@ class DtoTest extends TestCase
         $this->assertTrue($dto2->hasProperty('sample'));
         $this->assertTrue($dto2->sample->enabled);
         $this->assertSame(PARTIAL, $dto1->getFlags());
-        $this->assertSame(PARTIAL | ARRAY_DEFAULT_TO_EMPTY_ARRAY, $dto2->getFlags());
+        $this->assertSame(PARTIAL | CAMEL_CASE_ARRAY, $dto2->getFlags());
     }
 
     /**
@@ -532,13 +517,13 @@ class DtoTest extends TestCase
             ],
         ];
 
-        $dto2 = $dto1->merge($dataToMerge, BOOL_DEFAULT_TO_FALSE);
+        $dto2 = $dto1->merge($dataToMerge, CAST_PRIMITIVES);
 
         $this->assertSame($dto1, $dto2);
         $this->assertSame('bar', $dto1->name);
         $this->assertTrue($dto1->hasProperty('sample'));
         $this->assertTrue($dto1->sample->enabled);
-        $this->assertSame(PARTIAL | BOOL_DEFAULT_TO_FALSE | MUTABLE, $dto1->getFlags());
+        $this->assertSame(PARTIAL | CAST_PRIMITIVES | MUTABLE, $dto1->getFlags());
     }
 
     /**
@@ -551,14 +536,14 @@ class DtoTest extends TestCase
             'sample' => [
                 'enabled' => true,
             ],
-        ], NULLABLE_DEFAULT_TO_NULL);
+        ], CAST_PRIMITIVES);
 
         $dto2 = $dto1->only(['sample'], MUTABLE);
 
-        $this->assertSame(['name', 'sample', 'nullable'], $dto1->getPropertyNames());
+        $this->assertSame(['name', 'sample'], $dto1->getPropertyNames());
         $this->assertSame(['sample'], $dto2->getPropertyNames());
-        $this->assertSame(PARTIAL | NULLABLE_DEFAULT_TO_NULL, $dto1->getFlags());
-        $this->assertSame(PARTIAL | MUTABLE, $dto2->getFlags());
+        $this->assertSame(PARTIAL | CAST_PRIMITIVES, $dto1->getFlags());
+        $this->assertSame(PARTIAL | CAST_PRIMITIVES | MUTABLE, $dto2->getFlags());
         $this->assertNotSame($dto1, $dto2);
     }
 
@@ -574,11 +559,11 @@ class DtoTest extends TestCase
             ],
         ], MUTABLE);
 
-        $dto2 = $dto1->only(['sample'], BOOL_DEFAULT_TO_FALSE);
+        $dto2 = $dto1->only(['sample'], IGNORE_UNKNOWN_PROPERTIES);
         $this->assertSame(['sample'], $dto1->getPropertyNames());
         $this->assertSame(['sample'], $dto2->getPropertyNames());
-        $this->assertSame(PARTIAL | MUTABLE | BOOL_DEFAULT_TO_FALSE, $dto1->getFlags());
-        $this->assertSame(PARTIAL | MUTABLE | BOOL_DEFAULT_TO_FALSE, $dto2->getFlags());
+        $this->assertSame(PARTIAL | MUTABLE | IGNORE_UNKNOWN_PROPERTIES, $dto1->getFlags());
+        $this->assertSame(PARTIAL | MUTABLE | IGNORE_UNKNOWN_PROPERTIES, $dto2->getFlags());
         $this->assertSame($dto1, $dto2);
     }
 
@@ -594,12 +579,12 @@ class DtoTest extends TestCase
             ],
         ]);
 
-        $dto2 = $dto1->except(['sample'], BOOL_DEFAULT_TO_FALSE);
+        $dto2 = $dto1->except(['sample'], CAMEL_CASE_ARRAY);
 
         $this->assertSame(['name', 'sample'], $dto1->getPropertyNames());
         $this->assertSame(['name'], $dto2->getPropertyNames());
         $this->assertSame(PARTIAL, $dto1->getFlags());
-        $this->assertSame(PARTIAL | BOOL_DEFAULT_TO_FALSE, $dto2->getFlags());
+        $this->assertSame(PARTIAL | CAMEL_CASE_ARRAY, $dto2->getFlags());
         $this->assertNotSame($dto1, $dto2);
     }
 
@@ -615,11 +600,11 @@ class DtoTest extends TestCase
             ],
         ], MUTABLE);
 
-        $dto2 = $dto1->except(['sample'], BOOL_DEFAULT_TO_FALSE);
+        $dto2 = $dto1->except(['sample'], CAST_PRIMITIVES);
         $this->assertSame(['name'], $dto1->getPropertyNames());
         $this->assertSame(['name'], $dto2->getPropertyNames());
-        $this->assertSame(PARTIAL | MUTABLE | BOOL_DEFAULT_TO_FALSE, $dto1->getFlags());
-        $this->assertSame(PARTIAL | MUTABLE | BOOL_DEFAULT_TO_FALSE, $dto2->getFlags());
+        $this->assertSame(PARTIAL | MUTABLE | CAST_PRIMITIVES, $dto1->getFlags());
+        $this->assertSame(PARTIAL | MUTABLE | CAST_PRIMITIVES, $dto2->getFlags());
         $this->assertSame($dto1, $dto2);
     }
 
@@ -860,19 +845,19 @@ class DtoTest extends TestCase
      */
     public function serializes()
     {
-        $dto1 = PartialDto::make(['name' => 'foo'], NULLABLE);
+        $dto1 = PartialDto::make(['name' => 'foo'], CAMEL_CASE_ARRAY);
         $serialized = $dto1->serialize();
 
         [$data, $flags] = unserialize($serialized);
 
         $this->assertSame(['name' => 'foo'], $data);
-        $this->assertSame(NULLABLE | PARTIAL, $flags);
+        $this->assertSame(CAMEL_CASE_ARRAY | PARTIAL, $flags);
 
         $dto2 = PartialDto::make();
         $dto2->unserialize($serialized);
 
         $this->assertSame(['name' => 'foo'], $dto2->toArray());
-        $this->assertSame(NULLABLE | PARTIAL, $dto2->getFlags());
+        $this->assertSame(CAMEL_CASE_ARRAY | PARTIAL, $dto2->getFlags());
     }
 
     /**
@@ -969,5 +954,43 @@ class DtoTest extends TestCase
         $dto = PartialDto::make(['name' => 'foo'], MUTABLE);
 
         $this->assertSame('{"name":"foo"}', (string) $dto);
+    }
+
+    /**
+     * @test
+     */
+    public function can_set_default_values()
+    {
+        $expected = [
+            'name' => 'foo',
+            'count' => 0,
+            'time' => null,
+        ];
+
+        $dto = DtoWithDefaults::make(['name' => 'foo']);
+
+        $this->assertSame($expected, $dto->toArray());
+    }
+
+    /**
+     * @test
+     */
+    public function only_property_names_and_values_are_shown_on_debug()
+    {
+        $dto = PartialDto::make(['name' => 'foo']);
+        $id = spl_object_id($dto);
+        $expected = <<<DMP
+object(Cerbero\Dto\Dtos\PartialDto)#{$id} (1) {
+  ["name"]=>
+  string(3) "foo"
+}
+
+DMP;
+
+        ob_start();
+
+        var_dump($dto);
+
+        $this->assertSame($expected, ob_get_clean());
     }
 }
