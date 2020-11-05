@@ -98,7 +98,7 @@ class ArrayConverterTest extends TestCase
             'DateTime' => DateTimeConverter::class,
         ]);
 
-        $this->assertSame($expected, $converter->convert($data));
+        $this->assertSame($expected, $converter->convert($data, true));
     }
 
     /**
@@ -133,5 +133,49 @@ class ArrayConverterTest extends TestCase
         $this->assertSame($dateTimeConverter, $converter->getConverterByClass(DateTime::class));
 
         $this->assertNull($converter->getConverterByClass(stdClass::class));
+    }
+
+    /**
+     * @test
+     */
+    public function convert_items_with_camel_case_keys_into_array_preserving_the_case()
+    {
+        $data = [
+            'keyOne' => 'value1',
+            'keyTwo' => [
+                'keyThree' => '2020-01-01',
+            ],
+        ];
+
+        $expected = [
+            'keyOne' => 'value1',
+            'keyTwo' => [
+                'keyThree' => '2020-01-01',
+            ],
+        ];
+
+        $this->assertSame($expected, ArrayConverter::instance()->convert($data, false));
+    }
+
+    /**
+     * @test
+     */
+    public function convert_items_with_camel_case_keys_into_array_with_snake_case_keys()
+    {
+        $data = [
+            'keyOne' => 'value1',
+            'keyTwo' => [
+                'keyThree' => '2020-01-01',
+            ],
+        ];
+
+        $expected = [
+            'key_one' => 'value1',
+            'key_two' => [
+                'key_three' => '2020-01-01',
+            ],
+        ];
+
+        $this->assertSame($expected, ArrayConverter::instance()->convert($data, true));
     }
 }

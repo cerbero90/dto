@@ -9,6 +9,7 @@ use Cerbero\Dto\Exceptions\UnsetDtoPropertyException;
 use Cerbero\Dto\Manipulators\ArrayConverter;
 use Traversable;
 
+use const Cerbero\Dto\CAMEL_CASE_ARRAY;
 use const Cerbero\Dto\MUTABLE;
 
 /**
@@ -25,10 +26,11 @@ trait TurnsIntoArray
     public function toArray(): array
     {
         $data = [];
+        $snakeCase = !($this->getFlags() & CAMEL_CASE_ARRAY);
 
         foreach ($this->getPropertiesMap() as $name => $property) {
-            $key = strtolower(preg_replace(ArrayConverter::RE_SNAKE_CASE, '_', $name));
-            $data[$key] = ArrayConverter::instance()->convert($property->value(), true);
+            $key = ArrayConverter::instance()->formatKey($name, $snakeCase);
+            $data[$key] = ArrayConverter::instance()->convert($property->value(), $snakeCase);
         }
 
         return $data;

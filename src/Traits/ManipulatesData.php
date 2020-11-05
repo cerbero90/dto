@@ -4,6 +4,7 @@ namespace Cerbero\Dto\Traits;
 
 use Cerbero\Dto\Manipulators\ArrayConverter;
 
+use const Cerbero\Dto\CAMEL_CASE_ARRAY;
 use const Cerbero\Dto\MUTABLE;
 use const Cerbero\Dto\NONE;
 use const Cerbero\Dto\PARTIAL;
@@ -23,9 +24,10 @@ trait ManipulatesData
      */
     public function merge(iterable $data, int $flags = NONE): self
     {
-        $replacements = ArrayConverter::instance()->convert($data);
+        $mergedFlags = $this->getFlags() | $flags;
+        $snakeCase = !($mergedFlags & CAMEL_CASE_ARRAY);
+        $replacements = ArrayConverter::instance()->convert($data, $snakeCase);
         $mergedData = array_replace_recursive($this->toArray(), $replacements);
-        $mergedFlags = $this->mergeFlags($this->getFlags(), $flags);
 
         if (!($this->getFlags() & MUTABLE)) {
             return new static($mergedData, $mergedFlags);
@@ -48,7 +50,7 @@ trait ManipulatesData
     {
         $data = [];
         $isMutable = $this->getFlags() & MUTABLE;
-        $mergedFlags = $this->mergeFlags($this->getFlagsWithoutDefaults(), $flags | PARTIAL);
+        $mergedFlags = $this->getFlags() | $flags | PARTIAL;
 
         foreach ($this->getPropertiesMap() as $name => $property) {
             if (in_array($name, $properties) && !$isMutable) {

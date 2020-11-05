@@ -14,7 +14,7 @@ class ArrayConverter
      * - Look behind for lower case letters or digits
      * - Look ahead for upper case letters
      */
-    public const RE_SNAKE_CASE = '/(?<=[a-z\d])(?=[A-Z])/';
+    protected const RE_SNAKE_CASE = '/(?<=[a-z\d])(?=[A-Z])/';
 
     /**
      * The class instance.
@@ -113,24 +113,24 @@ class ArrayConverter
      * @param bool $snakeCase
      * @return mixed
      */
-    public function convert($item, $snakeCase = false)
+    public function convert($item, bool $snakeCase)
     {
         if (is_object($item) && $converter = $this->getConverterByInstance($item)) {
             return $converter->fromDto($item);
         }
 
-        if (is_iterable($item)) {
-            $result = [];
-
-            foreach ($item as $key => $value) {
-                $formattedKey = $this->formatArrayKey($key, $snakeCase);
-                $result[$formattedKey] = $this->convert($value);
-            }
-
-            return $result;
+        if (!is_iterable($item)) {
+            return $item;
         }
 
-        return $item;
+        $result = [];
+
+        foreach ($item as $key => $value) {
+            $formattedKey = $this->formatKey($key, $snakeCase);
+            $result[$formattedKey] = $this->convert($value, $snakeCase);
+        }
+
+        return $result;
     }
 
     /**
@@ -175,13 +175,9 @@ class ArrayConverter
      * @param bool $snakeCase
      * @return string
      */
-    protected function formatArrayKey(string $key, bool $snakeCase): string
+    public function formatKey(string $key, bool $snakeCase): string
     {
-        if (!$snakeCase) {
-            return $key;
-        }
-
-        return strtolower(preg_replace(static::RE_SNAKE_CASE, '_', $key));
+        return $snakeCase ? strtolower(preg_replace(static::RE_SNAKE_CASE, '_', $key)) : $key;
     }
 
     /**
