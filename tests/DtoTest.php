@@ -978,19 +978,7 @@ class DtoTest extends TestCase
     public function only_property_names_and_values_are_shown_on_debug()
     {
         $dto = PartialDto::make(['name' => 'foo']);
-        $id = spl_object_id($dto);
-        $expected = <<<DMP
-object(Cerbero\Dto\Dtos\PartialDto)#{$id} (1) {
-  ["name"]=>
-  string(3) "foo"
-}
 
-DMP;
-
-        ob_start();
-
-        var_dump($dto);
-
-        $this->assertSame($expected, ob_get_clean());
+        $this->assertSame(['name' => 'foo'], $dto->__debugInfo());
     }
 }
