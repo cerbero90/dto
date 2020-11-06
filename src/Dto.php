@@ -34,7 +34,7 @@ abstract class Dto implements IteratorAggregate, ArrayAccess, Serializable, Json
      */
     public function __construct(array $data = [], int $flags = NONE)
     {
-        $this->flags = $this->mergeFlags(static::getDefaultFlags(), $flags);
+        $this->flags = static::getDefaultFlags() | $flags;
         $this->propertiesMap = $this->mapData($data);
     }
 
@@ -96,5 +96,15 @@ abstract class Dto implements IteratorAggregate, ArrayAccess, Serializable, Json
         foreach ($this->propertiesMap as &$property) {
             $property = clone $property;
         }
+    }
+
+    /**
+     * Retrieve the data to debug
+     *
+     * @return array
+     */
+    public function __debugInfo(): array
+    {
+        return $this->toArray();
     }
 }

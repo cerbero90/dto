@@ -130,7 +130,9 @@ trait HasProperties
      */
     protected function mapData(array $data): array
     {
-        return DtoPropertiesMapper::for(static::class)->map($data, $this->getFlags());
+        $mergedData = array_merge(static::getDefaultValues(), $data);
+
+        return DtoPropertiesMapper::for(static::class)->map($mergedData, $this->getFlags());
     }
 
     /**

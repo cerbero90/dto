@@ -105,27 +105,13 @@ class DtoProperty
 
         switch (true) {
             case $this->types->expectedDto && $canBeDto:
-            case $this->rawValue === null && $this->isNullable():
+            case $this->rawValue === null && $this->types->includeNull:
             case $this->types->expectCollection && is_iterable($this->rawValue):
             case $this->types->match($this->value()):
                 return $this;
         }
 
         throw new UnexpectedValueException($this);
-    }
-
-    /**
-     * Determine whether this property is nullable
-     *
-     * @return bool
-     */
-    public function isNullable(): bool
-    {
-        if ($this->flags & NOT_NULLABLE) {
-            return false;
-        }
-
-        return ($this->flags & NULLABLE) || $this->types->includeNull;
     }
 
     /**
