@@ -4,6 +4,29 @@ All notable changes to `dto` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](http://keepachangelog.com/) principles.
 
+
+## 2.0.0 - 2020-11-07
+
+### Added
+- Definition of default values in DTOs
+- CAMEL_CASE_ARRAY flag to preserve camel case property names when turning a DTO into an array
+- Definition of DTO values to dump when calling `var_dump()`
+
+### Changed
+- Flags value because of the removal of some flags
+- Properties and array keys can now be formatted by `ArrayConverter`
+- Simplified interactions with flags
+
+### Removed
+- Logic to assign default values based on flags
+- `NULLABLE` flag
+- `NOT_NULLABLE` flag
+- `NULLABLE_DEFAULT_TO_NULL` flag
+- `BOOL_DEFAULT_TO_FALSE` flag
+- `ARRAY_DEFAULT_TO_EMPTY_ARRAY` flag
+- `IncompatibleDtoFlagsException` exception
+
+
 ## 1.4.1 - 2020-04-12
 
 ### Added
