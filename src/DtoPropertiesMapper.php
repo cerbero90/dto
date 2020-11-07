@@ -178,13 +178,11 @@ class DtoPropertiesMapper
             $key = $this->getPropertyKeyFromData($name, $data);
 
             if (!array_key_exists($key, $data)) {
-                if ($types->haveDefaultValue($flags)) {
-                    $data[$key] = $types->getDefaultValue($flags);
-                } elseif ($flags & PARTIAL) {
+                if ($flags & PARTIAL) {
                     continue;
-                } else {
-                    throw new MissingValueException($this->dtoClass, $name);
                 }
+
+                throw new MissingValueException($this->dtoClass, $name);
             }
 
             $mappedProperties[$name] = DtoProperty::create($name, $data[$key], $types, $flags);
@@ -274,7 +272,7 @@ class DtoPropertiesMapper
             return $property;
         }
 
-        return strtolower(preg_replace(ArrayConverter::RE_SNAKE_CASE, '_', $property));
+        return ArrayConverter::instance()->formatKey($property, true);
     }
 
     /**

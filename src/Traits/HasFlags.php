@@ -3,16 +3,9 @@
 namespace Cerbero\Dto\Traits;
 
 use Cerbero\Dto\Dto;
-use Cerbero\Dto\DtoFlagsHandler;
 
-use const Cerbero\Dto\ARRAY_DEFAULT_TO_EMPTY_ARRAY;
-use const Cerbero\Dto\BOOL_DEFAULT_TO_FALSE;
-use const Cerbero\Dto\CAST_PRIMITIVES;
 use const Cerbero\Dto\MUTABLE;
 use const Cerbero\Dto\NONE;
-use const Cerbero\Dto\NOT_NULLABLE;
-use const Cerbero\Dto\NULLABLE;
-use const Cerbero\Dto\NULLABLE_DEFAULT_TO_NULL;
 
 /**
  * Trait to interact with flags.
@@ -73,39 +66,13 @@ trait HasFlags
      */
     public function setFlags(int $flags): Dto
     {
-        $currentFlags = $this->getFlags();
-
-        if (!($currentFlags & MUTABLE)) {
+        if (!($this->getFlags() & MUTABLE)) {
             return static::make($this->toArray(), $flags);
         }
 
         $this->flags = $flags;
 
-        if (($currentFlags | $flags) & $this->getFlagsAffectingValues()) {
-            $this->mapData($this->toArray());
-        }
-
         return $this;
-    }
-
-    /**
-     * Retrieve the flags that affect the values of a DTO
-     *
-     * @return int
-     */
-    protected function getFlagsAffectingValues(): int
-    {
-        return $this->getFlagsForDefaults() | NULLABLE | NOT_NULLABLE | CAST_PRIMITIVES;
-    }
-
-    /**
-     * Retrieve the flags that determine default values
-     *
-     * @return int
-     */
-    protected function getFlagsForDefaults(): int
-    {
-        return NULLABLE_DEFAULT_TO_NULL | BOOL_DEFAULT_TO_FALSE | ARRAY_DEFAULT_TO_EMPTY_ARRAY;
     }
 
     /**
@@ -116,22 +83,9 @@ trait HasFlags
      */
     public function addFlags(int $flags): Dto
     {
-        $mergedFlags = $this->mergeFlags($this->getFlags(), $flags);
+        $mergedFlags = $this->getFlags() | $flags;
 
         return $this->setFlags($mergedFlags);
-    }
-
-    /**
-     * Retrieve the merged flags
-     *
-     * @param int $initialFlags
-     * @param int $flagsToMerge
-     * @return int
-     * @throws \Cerbero\Dto\Exceptions\IncompatibleDtoFlagsException
-     */
-    protected function mergeFlags(int $initialFlags, int $flagsToMerge): int
-    {
-        return (new DtoFlagsHandler())->merge($initialFlags, $flagsToMerge);
     }
 
     /**
@@ -146,17 +100,5 @@ trait HasFlags
         $remainingFlags = $currentFlags ^ ($currentFlags & $flags);
 
         return $this->setFlags($remainingFlags);
-    }
-
-    /**
-     * Retrieve the DTO flags excluding the flags for default values
-     *
-     * @return int
-     */
-    protected function getFlagsWithoutDefaults(): int
-    {
-        $flags = $this->getFlags();
-
-        return $flags ^ ($flags & $this->getFlagsForDefaults());
     }
 }

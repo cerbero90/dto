@@ -17,6 +17,23 @@ use const Cerbero\Dto\PARTIAL;
 trait HasValues
 {
     /**
+     * The default values.
+     *
+     * @var array
+     */
+    protected static $defaultValues = [];
+
+    /**
+     * Retrieve the default values
+     *
+     * @return array
+     */
+    public static function getDefaultValues(): array
+    {
+        return static::$defaultValues;
+    }
+
+    /**
      * Determine whether the given property has a value (return FALSE if the value is NULL)
      *
      * @param string $property

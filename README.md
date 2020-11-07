@@ -24,6 +24,7 @@ composer require cerbero/dto
 
 * [Instantiate a DTO](#instantiate-a-dto)
 * [Declare properties](#declare-properties)
+* [Default values](#default-values)
 * [Interact with values](#interact-with-values)
 * [Available flags](#available-flags)
    * [NONE](#none)
@@ -31,11 +32,7 @@ composer require cerbero/dto
    * [MUTABLE](#mutable)
    * [PARTIAL](#partial)
    * [CAST_PRIMITIVES](#cast_primitives)
-   * [NULLABLE](#nullable)
-   * [NOT_NULLABLE](#not_nullable)
-   * [NULLABLE_DEFAULT_TO_NULL](#nullable_default_to_null)
-   * [BOOL_DEFAULT_TO_FALSE](#bool_default_to_false)
-   * [ARRAY_DEFAULT_TO_EMPTY_ARRAY](#array_default_to_empty_array)
+   * [CAMEL_CASE_ARRAY](#camel_case_array)
 * [Default flags](#default-flags)
 * [Interact with flags](#interact-with-flags)
 * [Manipulate properties](#manipulate-properties)
@@ -97,6 +94,35 @@ Either `@property` or `@property-read` can be used, followed by the expected dat
 A collection of types can be declared by adding the suffix `[]` to the data type, e.g. `UserDto[]`. It's important to declare the fully qualified name of classes, either in the doc comment or as a `use` statement.
 
 Primitive types can be specified too, e.g. `string`, `bool`, `int`, `array`, etc. The pseudo-type `mixed` allow any type.
+
+
+### Default values
+
+While values can be set when instatiating a DTO, default values can also be defined in the DTO class:
+
+```php
+use Cerbero\Dto\Dto;
+
+/**
+ * A sample user DTO.
+ *
+ * @property string $name
+ */
+class UserDto extends Dto
+{
+    protected static $defaultValues = [
+        'name' => 'John',
+    ];
+}
+
+// $user1->name will return: John
+$user1 = new UserDto();
+
+// $user2->name will return: Jack
+$user2 = new UserDto(['name' => 'Jack']);
+```
+
+Please note that in the above example default values are overridden by the values passed during the DTO creation.
 
 ### Interact with values
 
@@ -169,7 +195,7 @@ $user->address->unset('street');
 
 ### Available flags
 
-Flags determine how a DTO behaves and can be set when instantiating a new DTO. They support bitwise operations, so we can combine multiple behaviours via `PARTIAL | NULLABLE | MUTABLE`.
+Flags determine how a DTO behaves and can be set when instantiating a new DTO. They support bitwise operations, so we can combine multiple behaviours via `PARTIAL | MUTABLE`.
 
 #### NONE
 
@@ -191,25 +217,9 @@ The flag `Cerbero\Dto\PARTIAL` lets a DTO be instantiated without some propertie
 
 The flag `Cerbero\Dto\CAST_PRIMITIVES` lets a DTO cast property values if they don't match the expected primitive type. If not provided, a `Cerbero\Dto\Exceptions\UnexpectedValueException` is thrown when trying to set a value with a wrong primitive type.
 
-#### NULLABLE
+#### CAMEL_CASE_ARRAY
 
-The flag `Cerbero\Dto\NULLABLE` lets all DTO properties accept NULL as their own value.
-
-#### NOT_NULLABLE
-
-The flag `Cerbero\Dto\NOT_NULLABLE` forbids all DTO properties to have NULL as their own value.
-
-#### NULLABLE_DEFAULT_TO_NULL
-
-The flag `Cerbero\Dto\NULLABLE_DEFAULT_TO_NULL` lets DTO properties accepting NULL as a value to be set to NULL if no other value is provided.
-
-#### BOOL_DEFAULT_TO_FALSE
-
-The flag `Cerbero\Dto\BOOL_DEFAULT_TO_FALSE` lets DTO properties accepting boolean values to be set to FALSE if no other value is provided.
-
-#### ARRAY_DEFAULT_TO_EMPTY_ARRAY
-
-The flag `Cerbero\Dto\ARRAY_DEFAULT_TO_EMPTY_ARRAY` lets DTO properties accepting an array as a value to be set to an empty array if no other value is provided.
+The flag `Cerbero\Dto\CAMEL_CASE_ARRAY` lets all DTO properties preserve their camel case names when a DTO is converted into an array.
 
 
 ### Default flags
@@ -269,7 +279,7 @@ $user = $user->setFlags(PARTIAL | NULLABLE);
 In case we want to add one or more flags to the already set ones, we can call `addFlags()`. If the DTO is mutable the flags are added to the current instance, otherwise they are added to a new instance:
 
 ```php
-$user = $user->addFlags(NOT_NULLABLE | CAST_PRIMITIVES);
+$user = $user->addFlags(CAMEL_CASE_ARRAY | CAST_PRIMITIVES);
 ```
 
 Finally to remove flags, we can call `removeFlags()`. If the DTO is mutable the flags are removed from the current instance, otherwise they are removed from a new instance:
@@ -298,7 +308,7 @@ $user2 = UserDto::make([
     'address' => [
         'unit' => 10,
     ],
-], PARTIAL | NOT_NULLABLE);
+], PARTIAL | CAMEL_CASE_ARRAY);
 
 // [
 //     'name' => 'Anna',
@@ -309,7 +319,7 @@ $user2 = UserDto::make([
 // ]
 $mergedDto = $user1->merge($user2);
 
-// PARTIAL | IGNORE_UNKNOWN_PROPERTIES | NOT_NULLABLE
+// PARTIAL | IGNORE_UNKNOWN_PROPERTIES | CAMEL_CASE_ARRAY
 $mergedDto->getFlags();
 ```
 
@@ -318,7 +328,7 @@ In the example above, the two DTOs are immutable, so another DTO will be created
 In order to let a DTO carry only some specific properties, we can call the `only()` method and pass a list of properties to keep:
 
 ```php
-$result = $user->only(['name', 'address'], NULLABLE);
+$result = $user->only(['name', 'address'], CAST_PRIMITIVES);
 ```
 
 Any optional flag passed as second parameter will be merged with the existing flags of the DTO. The changes will be applied to a new instance if the DTO is immutable or to the same instance if it is mutable.
@@ -326,7 +336,7 @@ Any optional flag passed as second parameter will be merged with the existing fl
 The `only()` method has also an opposite method called `except` that keeps all the DTO properties except for the ones excluded:
 
 ```php
-$result = $user->except(['name', 'address'], NULLABLE);
+$result = $user->except(['name', 'address'], CAST_PRIMITIVES);
 ```
 
 Sometimes we may need to quickly alter the data of an immutable DTO. In order to do that while preserving the immutability of the DTO after the altering process, we can call the `mutate()` method:
@@ -374,7 +384,7 @@ foreach($dto as $propertyName => $propertyValue) {
 }
 ```
 
-We can call the method `toArray()` to get an array representation of a DTO and its nested DTOs. The resulting array will have keys in snake case:
+We can call the method `toArray()` to get an array representation of a DTO and its nested DTOs. The resulting array will have keys in snake case by default, unless the DTO has the `CAMEL_CASE_ARRAY` flag:
 
 ```php
 // [
@@ -516,12 +526,12 @@ If you discover any security related issues, please email andrea.marco.sartori@g
 
 The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
 
-[ico-php]: https://img.shields.io/packagist/php-v/cerbero/dto?color=%238892BF&style=flat-square
+[ico-php]: https://img.shields.io/packagist/php-v/cerbero/dto?color=%238892BF&style=flat-square&logo=php
 [ico-version]: https://img.shields.io/packagist/v/cerbero/dto.svg?style=flat-square
 [ico-license]: https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square
-[ico-travis]: https://img.shields.io/travis/cerbero90/dto/master.svg?style=flat-square
-[ico-scrutinizer]: https://img.shields.io/scrutinizer/coverage/g/cerbero90/dto.svg?style=flat-square
-[ico-code-quality]: https://img.shields.io/scrutinizer/g/cerbero90/dto.svg?style=flat-square
+[ico-travis]: https://img.shields.io/travis/cerbero90/dto/master.svg?style=flat-square&logo=travis
+[ico-scrutinizer]: https://img.shields.io/scrutinizer/coverage/g/cerbero90/dto.svg?style=flat-square&logo=scrutinizer
+[ico-code-quality]: https://img.shields.io/scrutinizer/g/cerbero90/dto.svg?style=flat-square&logo=scrutinizer
 [ico-downloads]: https://img.shields.io/packagist/dt/cerbero/dto.svg?style=flat-square
 
 [link-packagist]: https://packagist.org/packages/cerbero/dto

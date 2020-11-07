@@ -10,8 +10,6 @@ use Cerbero\Dto\Manipulators\ValueConverter;
  *
  * @property DtoPropertyType[] $all
  * @property bool $includeNull
- * @property bool $includeArray
- * @property bool $includeBool
  * @property bool $expectCollection
  * @property string|null $expectedDto
  * @property ValueConverter|null $expectedConverter
@@ -33,20 +31,6 @@ class DtoPropertyTypes
      * @var bool
      */
     protected $includeNull = false;
-
-    /**
-     * Whether one of the types is 'array'.
-     *
-     * @var bool
-     */
-    protected $includeArray = false;
-
-    /**
-     * Whether one of the types is 'bool'.
-     *
-     * @var bool
-     */
-    protected $includeBool = false;
 
     /**
      * Whether the types expect a collection.
@@ -93,8 +77,6 @@ class DtoPropertyTypes
     {
         $this->all[] = $type;
         $this->includeNull = $this->includeNull || $type->name() == 'null';
-        $this->includeArray = $this->includeArray || $type->name() == 'array';
-        $this->includeBool = $this->includeBool || $type->name() == 'bool';
         $this->expectCollection = $this->expectCollection || $type->isCollection();
         $this->expectedDto = $this->getExpectedDto($type);
         $this->expectedConverter = $this->getExpectedConverter($type);
@@ -177,48 +159,6 @@ class DtoPropertyTypes
         }
 
         return false;
-    }
-
-    /**
-     * Determine whether the types have a default value depending on the given flags
-     *
-     * @param int $flags
-     * @return mixed
-     */
-    public function haveDefaultValue(int $flags)
-    {
-        return $this->arraysHaveDefault($flags) ||
-            ($this->includeBool && ($flags & BOOL_DEFAULT_TO_FALSE)) ||
-            ($this->includeNull && ($flags & NULLABLE_DEFAULT_TO_NULL));
-    }
-
-    /**
-     * Determine whether array types have a default value
-     *
-     * @param int $flags
-     * @return bool
-     */
-    protected function arraysHaveDefault(int $flags): bool
-    {
-        $includeArray = $this->includeArray || $this->expectCollection;
-
-        return $includeArray && ($flags & ARRAY_DEFAULT_TO_EMPTY_ARRAY);
-    }
-
-    /**
-     * Retrieve the types default value depending on the given flags
-     *
-     * @param int $flags
-     * @return mixed
-     */
-    public function getDefaultValue(int $flags)
-    {
-        switch (true) {
-            case ($this->includeArray || $this->expectCollection) && ($flags & ARRAY_DEFAULT_TO_EMPTY_ARRAY):
-                return [];
-            case $this->includeBool && ($flags & BOOL_DEFAULT_TO_FALSE):
-                return false;
-        }
     }
 
     /**
