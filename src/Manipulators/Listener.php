@@ -122,7 +122,7 @@ class Listener
      */
     protected function callListenerOrReturnValue(string $dtoClass, string $method, $value)
     {
-        $listener = $this->listenersMap[$dtoClass] ?? null;
+        $listener = $this->listenersMap[$dtoClass] ?? new \stdClass();
 
         if (!method_exists($listener, $method)) {
             return $value;
