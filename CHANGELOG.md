@@ -5,6 +5,12 @@ All notable changes to `dto` will be documented in this file.
 Updates should follow the [Keep a CHANGELOG](http://keepachangelog.com/) principles.
 
 
+## 2.1.0 - 2020-12-13
+
+### Added
+- Support for PHP 8
+
+
 ## 2.0.0 - 2020-11-07
 
 ### Added
