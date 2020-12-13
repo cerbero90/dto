@@ -8,16 +8,14 @@
     ],
     "homepage": "https://github.com/cerbero/dto",
     "license": "MIT",
-    "authors": [
-        {
-            "name": "Andrea Marco Sartori",
-            "email": "andrea.marco.sartori@gmail.com",
-            "homepage": "https://github.com/cerbero90",
-            "role": "Developer"
-        }
-    ],
+    "authors": [{
+        "name": "Andrea Marco Sartori",
+        "email": "andrea.marco.sartori@gmail.com",
+        "homepage": "https://github.com/cerbero90",
+        "role": "Developer"
+    }],
     "require": {
-        "php": "^7.1"
+        "php": "^7.1||^8.0"
     },
     "require-dev": {
         "phpunit/phpunit": ">=7.0",
