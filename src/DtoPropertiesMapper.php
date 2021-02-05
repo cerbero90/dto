@@ -78,7 +78,7 @@ class DtoPropertiesMapper
     /**
      * Instantiate the class.
      *
-     * @param string $dtoClass
+     * @param  string  $dtoClass
      * @throws DtoNotFoundException
      */
     protected function __construct(string $dtoClass)
@@ -105,7 +105,7 @@ class DtoPropertiesMapper
     /**
      * Retrieve the mapper instance for the given DTO class
      *
-     * @param string $dtoClass
+     * @param  string  $dtoClass
      * @return DtoPropertiesMapper
      * @throws DtoNotFoundException
      */
@@ -138,19 +138,26 @@ class DtoPropertiesMapper
         if (isset($this->rawProperties)) {
             return $this->rawProperties;
         }
+        $reflection = $this->reflection;
 
-        if (false === $docComment = $this->reflection->getDocComment()) {
+        if (false === $docComment = $reflection->getDocComment()) {
             throw new InvalidDocCommentException($this->dtoClass);
         }
 
-        if (preg_match_all(static::RE_PROPERTY, $docComment, $matches, PREG_SET_ORDER) === 0) {
-            return $this->rawProperties = [];
-        }
+        $this->rawProperties = [];
 
-        foreach ($matches as $match) {
-            [, $rawTypes, $name] = $match;
-            $this->rawProperties[$name] = $rawTypes;
-        }
+        do {
+            if ($docComment = $reflection->getDocComment()) {
+                if (preg_match_all(static::RE_PROPERTY, $docComment, $matches, PREG_SET_ORDER) !== 0) {
+                    foreach ($matches as $match) {
+                        [, $rawTypes, $name] = $match;
+                        $this->rawProperties[$name] = $rawTypes;
+                    }
+                }
+            }
+            $parent = $reflection->getParentClass();
+            $reflection = $parent && $parent->name != Dto::class ? $parent : false;
+        } while ($reflection);
 
         return $this->rawProperties;
     }
@@ -158,8 +165,8 @@ class DtoPropertiesMapper
     /**
      * Retrieve the mapped DTO properties
      *
-     * @param array $data
-     * @param int $flags
+     * @param  array  $data
+     * @param  int  $flags
      * @return array
      * @throws InvalidDocCommentException
      * @throws MissingValueException
@@ -231,8 +238,8 @@ class DtoPropertiesMapper
     /**
      * Parse the given raw property types
      *
-     * @param string $rawTypes
-     * @param array $useStatements
+     * @param  string  $rawTypes
+     * @param  array  $useStatements
      * @return DtoPropertyTypes
      */
     protected function parseTypes(string $rawTypes, array $useStatements): DtoPropertyTypes
@@ -262,8 +269,8 @@ class DtoPropertiesMapper
     /**
      * Retrieve the key for the given property in the provided data
      *
-     * @param string $property
-     * @param array $data
+     * @param  string  $property
+     * @param  array  $data
      * @return string
      */
     protected function getPropertyKeyFromData(string $property, array $data): string
@@ -278,8 +285,8 @@ class DtoPropertiesMapper
     /**
      * Check whether the given data contains unknown properties
      *
-     * @param array $data
-     * @param int $flags
+     * @param  array  $data
+     * @param  int  $flags
      * @return void
      * @throws UnknownDtoPropertyException
      */
