@@ -3,13 +3,11 @@
 namespace Cerbero\Dto;
 
 use Cerbero\Dto\Dtos\CamelCaseDto;
-use Cerbero\Dto\Dtos\NoDocCommentDto;
 use Cerbero\Dto\Dtos\NoPropertiesDto;
 use Cerbero\Dto\Dtos\PartialDto;
 use Cerbero\Dto\Dtos\SampleDto;
 use Cerbero\Dto\Dtos\SampleDtoWithParent;
 use Cerbero\Dto\Exceptions\DtoNotFoundException;
-use Cerbero\Dto\Exceptions\InvalidDocCommentException;
 use Cerbero\Dto\Exceptions\MissingValueException;
 use Cerbero\Dto\Exceptions\UnknownDtoPropertyException;
 use PHPUnit\Framework\TestCase;
@@ -55,17 +53,6 @@ class DtoPropertiesMapperTest extends TestCase
         $instance2 = DtoPropertiesMapper::for(SampleDto::class);
 
         $this->assertSame($instance1, $instance2);
-    }
-
-    /**
-     * @test
-     */
-    public function fails_if_doc_comment_is_missing()
-    {
-        $this->expectException(InvalidDocCommentException::class);
-        $this->expectExceptionMessage('The DTO [Cerbero\Dto\Dtos\NoDocCommentDto] does not have declared properties');
-
-        DtoPropertiesMapper::for(NoDocCommentDto::class)->map([], NONE);
     }
 
     /**
