@@ -3,12 +3,11 @@
 namespace Cerbero\Dto;
 
 use Cerbero\Dto\Dtos\CamelCaseDto;
-use Cerbero\Dto\Dtos\NoDocCommentDto;
 use Cerbero\Dto\Dtos\NoPropertiesDto;
 use Cerbero\Dto\Dtos\PartialDto;
 use Cerbero\Dto\Dtos\SampleDto;
+use Cerbero\Dto\Dtos\SampleDtoWithParent;
 use Cerbero\Dto\Exceptions\DtoNotFoundException;
-use Cerbero\Dto\Exceptions\InvalidDocCommentException;
 use Cerbero\Dto\Exceptions\MissingValueException;
 use Cerbero\Dto\Exceptions\UnknownDtoPropertyException;
 use PHPUnit\Framework\TestCase;
@@ -23,7 +22,7 @@ class DtoPropertiesMapperTest extends TestCase
 {
     /**
      * This method is called before each test.
-     * 
+     *
      */
     protected function setUp(): void
     {
@@ -54,17 +53,6 @@ class DtoPropertiesMapperTest extends TestCase
         $instance2 = DtoPropertiesMapper::for(SampleDto::class);
 
         $this->assertSame($instance1, $instance2);
-    }
-
-    /**
-     * @test
-     */
-    public function fails_if_doc_comment_is_missing()
-    {
-        $this->expectException(InvalidDocCommentException::class);
-        $this->expectExceptionMessage('The DTO [Cerbero\Dto\Dtos\NoDocCommentDto] does not have declared properties');
-
-        DtoPropertiesMapper::for(NoDocCommentDto::class)->map([], NONE);
     }
 
     /**
@@ -185,6 +173,42 @@ class DtoPropertiesMapperTest extends TestCase
         $this->assertCount(1, $types->all);
         $this->assertSame('Cerbero\Dto\SampleClass', $types->all[0]->name());
         $this->assertFalse($types->all[0]->isCollection());
+
+        $types = $map['name']->getTypes();
+        $this->assertInstanceOf(DtoPropertyTypes::class, $types);
+        $this->assertCount(1, $types->all);
+        $this->assertSame('string', $types->all[0]->name());
+        $this->assertFalse($types->all[0]->isCollection());
+
+        $types = $map['enabled']->getTypes();
+        $this->assertInstanceOf(DtoPropertyTypes::class, $types);
+        $this->assertCount(1, $types->all);
+        $this->assertSame('bool', $types->all[0]->name());
+        $this->assertFalse($types->all[0]->isCollection());
+    }
+
+    /**
+     * @test
+     */
+    public function maps_with_parent_properties()
+    {
+        $data = [
+            'name' => 'foo',
+            'enabled' => true,
+        ];
+
+        $names = array_keys($data);
+        $map = DtoPropertiesMapper::for(SampleDtoWithParent::class)->map($data, NONE);
+
+        $this->assertCount(2, $map);
+
+        foreach ($map as $name => $propery) {
+            $this->assertContains($name, $names);
+            $this->assertInstanceOf(DtoProperty::class, $propery);
+            $this->assertSame($name, $propery->getName());
+            $this->assertSame($data[$name], $propery->getRawValue());
+            $this->assertSame(NONE, $propery->getFlags());
+        }
 
         $types = $map['name']->getTypes();
         $this->assertInstanceOf(DtoPropertyTypes::class, $types);

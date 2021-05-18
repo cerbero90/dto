@@ -5,6 +5,18 @@ All notable changes to `dto` will be documented in this file.
 Updates should follow the [Keep a CHANGELOG](http://keepachangelog.com/) principles.
 
 
+## 2.2.0 - 2021-05-18
+
+### Added
+- DTO properties inheritance
+
+### Changed
+- Replaced Travis with GitHub actions
+
+### Removed
+- Exception thrown when DTOs do not provide doc-comments (removed as properties may be inherited)
+
+
 ## 2.1.0 - 2020-12-13
 
 ### Added

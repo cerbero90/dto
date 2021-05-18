@@ -3,7 +3,6 @@
 namespace Cerbero\Dto;
 
 use Cerbero\Dto\Exceptions\DtoNotFoundException;
-use Cerbero\Dto\Exceptions\InvalidDocCommentException;
 use Cerbero\Dto\Exceptions\MissingValueException;
 use Cerbero\Dto\Exceptions\UnknownDtoPropertyException;
 use Cerbero\Dto\Manipulators\ArrayConverter;
@@ -78,7 +77,7 @@ class DtoPropertiesMapper
     /**
      * Instantiate the class.
      *
-     * @param string $dtoClass
+     * @param  string  $dtoClass
      * @throws DtoNotFoundException
      */
     protected function __construct(string $dtoClass)
@@ -105,7 +104,7 @@ class DtoPropertiesMapper
     /**
      * Retrieve the mapper instance for the given DTO class
      *
-     * @param string $dtoClass
+     * @param  string  $dtoClass
      * @return DtoPropertiesMapper
      * @throws DtoNotFoundException
      */
@@ -118,7 +117,6 @@ class DtoPropertiesMapper
      * Retrieve the mapped property names
      *
      * @return array
-     * @throws InvalidDocCommentException
      */
     public function getNames(): array
     {
@@ -131,37 +129,46 @@ class DtoPropertiesMapper
      * Retrieve and cache the raw properties to map
      *
      * @return array
-     * @throws InvalidDocCommentException
      */
     protected function cacheRawProperties(): array
     {
-        if (isset($this->rawProperties)) {
-            return $this->rawProperties;
-        }
-
-        if (false === $docComment = $this->reflection->getDocComment()) {
-            throw new InvalidDocCommentException($this->dtoClass);
-        }
-
-        if (preg_match_all(static::RE_PROPERTY, $docComment, $matches, PREG_SET_ORDER) === 0) {
-            return $this->rawProperties = [];
-        }
-
-        foreach ($matches as $match) {
-            [, $rawTypes, $name] = $match;
-            $this->rawProperties[$name] = $rawTypes;
+        if (!isset($this->rawProperties)) {
+            $this->cacheRawPropertiesOfReflection($this->reflection);
         }
 
         return $this->rawProperties;
     }
 
     /**
+     * Cache the raw properties of the given reflection
+     *
+     * @param  ReflectionClass  $reflection
+     * @return void
+     */
+    protected function cacheRawPropertiesOfReflection(ReflectionClass $reflection): void
+    {
+        $this->rawProperties = $this->rawProperties ?? [];
+
+        if (preg_match_all(static::RE_PROPERTY, $reflection->getDocComment(), $matches, PREG_SET_ORDER) !== 0) {
+            foreach ($matches as $match) {
+                [, $rawTypes, $name] = $match;
+                $this->rawProperties[$name] = $rawTypes;
+            }
+        }
+
+        $parentDto = $reflection->getParentClass();
+
+        if ($parentDto !== false && $parentDto != Dto::class) {
+            $this->cacheRawPropertiesOfReflection($parentDto);
+        }
+    }
+
+    /**
      * Retrieve the mapped DTO properties
      *
-     * @param array $data
-     * @param int $flags
+     * @param  array  $data
+     * @param  int  $flags
      * @return array
-     * @throws InvalidDocCommentException
      * @throws MissingValueException
      * @throws UnexpectedValueException
      * @throws UnknownDtoPropertyException
@@ -231,8 +238,8 @@ class DtoPropertiesMapper
     /**
      * Parse the given raw property types
      *
-     * @param string $rawTypes
-     * @param array $useStatements
+     * @param  string  $rawTypes
+     * @param  array  $useStatements
      * @return DtoPropertyTypes
      */
     protected function parseTypes(string $rawTypes, array $useStatements): DtoPropertyTypes
@@ -262,8 +269,8 @@ class DtoPropertiesMapper
     /**
      * Retrieve the key for the given property in the provided data
      *
-     * @param string $property
-     * @param array $data
+     * @param  string  $property
+     * @param  array  $data
      * @return string
      */
     protected function getPropertyKeyFromData(string $property, array $data): string
@@ -278,8 +285,8 @@ class DtoPropertiesMapper
     /**
      * Check whether the given data contains unknown properties
      *
-     * @param array $data
-     * @param int $flags
+     * @param  array  $data
+     * @param  int  $flags
      * @return void
      * @throws UnknownDtoPropertyException
      */

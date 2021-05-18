@@ -123,7 +123,6 @@ trait HasProperties
      * @param array $data
      * @return array
      * @throws \Cerbero\Dto\Exceptions\DtoNotFoundException
-     * @throws \Cerbero\Dto\Exceptions\InvalidDocCommentException
      * @throws \Cerbero\Dto\Exceptions\MissingValueException
      * @throws \Cerbero\Dto\Exceptions\UnexpectedValueException
      * @throws UnknownDtoPropertyException
