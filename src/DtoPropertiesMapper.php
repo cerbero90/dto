@@ -3,7 +3,6 @@
 namespace Cerbero\Dto;
 
 use Cerbero\Dto\Exceptions\DtoNotFoundException;
-use Cerbero\Dto\Exceptions\InvalidDocCommentException;
 use Cerbero\Dto\Exceptions\MissingValueException;
 use Cerbero\Dto\Exceptions\UnknownDtoPropertyException;
 use Cerbero\Dto\Manipulators\ArrayConverter;
@@ -118,7 +117,6 @@ class DtoPropertiesMapper
      * Retrieve the mapped property names
      *
      * @return array
-     * @throws InvalidDocCommentException
      */
     public function getNames(): array
     {
@@ -131,35 +129,38 @@ class DtoPropertiesMapper
      * Retrieve and cache the raw properties to map
      *
      * @return array
-     * @throws InvalidDocCommentException
      */
     protected function cacheRawProperties(): array
     {
-        if (isset($this->rawProperties)) {
-            return $this->rawProperties;
+        if (!isset($this->rawProperties)) {
+            $this->cacheRawPropertiesOfReflection($this->reflection);
         }
-        $reflection = $this->reflection;
-
-        if (false === $docComment = $reflection->getDocComment()) {
-            throw new InvalidDocCommentException($this->dtoClass);
-        }
-
-        $this->rawProperties = [];
-
-        do {
-            if ($docComment = $reflection->getDocComment()) {
-                if (preg_match_all(static::RE_PROPERTY, $docComment, $matches, PREG_SET_ORDER) !== 0) {
-                    foreach ($matches as $match) {
-                        [, $rawTypes, $name] = $match;
-                        $this->rawProperties[$name] = $rawTypes;
-                    }
-                }
-            }
-            $parent = $reflection->getParentClass();
-            $reflection = $parent && $parent->name != Dto::class ? $parent : false;
-        } while ($reflection);
 
         return $this->rawProperties;
+    }
+
+    /**
+     * Cache the raw properties of the given reflection
+     *
+     * @param  ReflectionClass  $reflection
+     * @return void
+     */
+    protected function cacheRawPropertiesOfReflection(ReflectionClass $reflection): void
+    {
+        $this->rawProperties = $this->rawProperties ?? [];
+
+        if (preg_match_all(static::RE_PROPERTY, $reflection->getDocComment(), $matches, PREG_SET_ORDER) !== 0) {
+            foreach ($matches as $match) {
+                [, $rawTypes, $name] = $match;
+                $this->rawProperties[$name] = $rawTypes;
+            }
+        }
+
+        $parentDto = $reflection->getParentClass();
+
+        if ($parentDto !== false && $parentDto != Dto::class) {
+            $this->cacheRawPropertiesOfReflection($parentDto);
+        }
     }
 
     /**
@@ -168,7 +169,6 @@ class DtoPropertiesMapper
      * @param  array  $data
      * @param  int  $flags
      * @return array
-     * @throws InvalidDocCommentException
      * @throws MissingValueException
      * @throws UnexpectedValueException
      * @throws UnknownDtoPropertyException
