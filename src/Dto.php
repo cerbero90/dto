@@ -39,6 +39,23 @@ abstract class Dto implements IteratorAggregate, ArrayAccess, Serializable, Json
     }
 
     /**
+     * @return string
+     */
+    public function __serialize()
+    {
+        return $this->serialize();
+    }
+
+    /**
+     * @param mixed $serialized
+     * @return string
+     */
+    public function __unserialize($serialized)
+    {
+        return $this->unserialize($serialized);
+    }
+
+    /**
      * Retrieve an instance of DTO
      *
      * @param array $data
